@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { SystemType, DiseaseType, DISEASES } from '../data';
+import { SystemType, DiseaseType, DISEASES, TABS, TabType } from '../data';
 import { Activity, Bone, Heart, Brain, Stethoscope, Wind, Coffee, ShieldAlert } from 'lucide-react';
 
 interface SidebarProps {
-  activeTab: 'systems' | 'skeletal' | 'diseases';
-  onTabChange: (tab: 'systems' | 'skeletal' | 'diseases') => void;
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
   activeSystem: SystemType;
   onSystemChange: (system: SystemType) => void;
   activeDisease: DiseaseType;
@@ -31,27 +31,27 @@ export default function Sidebar({
 
       <div className="flex p-2 gap-1 bg-zinc-950/50 border-b border-zinc-800">
         <TabButton 
-          active={activeTab === 'systems'} 
-          onClick={() => onTabChange('systems')}
+          active={activeTab === TABS.SYSTEMS}
+          onClick={() => onTabChange(TABS.SYSTEMS)}
           icon={<Heart className="w-4 h-4" />}
           label="Systems"
         />
         <TabButton 
-          active={activeTab === 'skeletal'} 
-          onClick={() => onTabChange('skeletal')}
+          active={activeTab === TABS.SKELETAL}
+          onClick={() => onTabChange(TABS.SKELETAL)}
           icon={<Bone className="w-4 h-4" />}
           label="Skeletal"
         />
         <TabButton 
-          active={activeTab === 'diseases'} 
-          onClick={() => onTabChange('diseases')}
+          active={activeTab === TABS.DISEASES}
+          onClick={() => onTabChange(TABS.DISEASES)}
           icon={<Stethoscope className="w-4 h-4" />}
           label="Diseases"
         />
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {activeTab === 'systems' && (
+        {activeTab === TABS.SYSTEMS && (
           <div className="space-y-2">
             <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">Organ Systems</h2>
             <SystemButton 
@@ -87,7 +87,7 @@ export default function Sidebar({
           </div>
         )}
 
-        {activeTab === 'skeletal' && (
+        {activeTab === TABS.SKELETAL && (
           <div className="space-y-4">
             <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">Skeletal System</h2>
             <p className="text-sm text-zinc-400 px-2">
@@ -105,7 +105,7 @@ export default function Sidebar({
           </div>
         )}
 
-        {activeTab === 'diseases' && (
+        {activeTab === TABS.DISEASES && (
           <div className="space-y-2">
             <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">Conditions & Pathology</h2>
             <DiseaseButton 
