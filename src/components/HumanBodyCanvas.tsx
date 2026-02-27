@@ -113,6 +113,48 @@ export default function HumanBodyCanvas({
   );
 }
 
+interface BodyPartProps extends Omit<React.ComponentProps<'mesh'>, 'id'> {
+  id: string;
+  system: SystemType;
+  baseColor: string;
+  getMaterialProps: (id: string, baseColor: string, system: SystemType) => any;
+  onPartPointerOver: (e: any, id: string) => void;
+  onPartPointerOut: (e: any) => void;
+  onPartClick: (e: any, id: string) => void;
+  materialOverrides?: any;
+}
+
+const BodyPart = React.forwardRef<THREE.Mesh, BodyPartProps>(({
+  id,
+  system,
+  baseColor,
+  getMaterialProps,
+  onPartPointerOver,
+  onPartPointerOut,
+  onPartClick,
+  materialOverrides = {},
+  children,
+  ...meshProps
+}, ref) => {
+  return (
+    <mesh
+      ref={ref}
+      onPointerOver={(e) => onPartPointerOver(e, id)}
+      onPointerOut={onPartPointerOut}
+      onClick={(e) => onPartClick(e, id)}
+      castShadow
+      {...meshProps}
+    >
+      {children}
+      <meshPhysicalMaterial
+        {...getMaterialProps(id, baseColor, system)}
+        {...materialOverrides}
+      />
+    </mesh>
+  );
+});
+BodyPart.displayName = 'BodyPart';
+
 // Stylized Human Body Component
 function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }: HumanBodyCanvasProps) {
   const groupRef = useRef<THREE.Group>(null);
@@ -253,93 +295,110 @@ function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }
       {/* --- SKELETAL SYSTEM --- */}
       <group visible={isVisible('skeletal') || activeSystem === 'all'}>
         {/* Skull */}
-        <mesh 
-          position={[0, 6.8, 0]} 
-          onPointerOver={(e) => handlePointerOver(e, 'skull')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'skull')}
-          castShadow
+        <BodyPart
+          id="skull"
+          system="skeletal"
+          baseColor="#f8fafc"
+          position={[0, 6.8, 0]}
+          getMaterialProps={getMaterialProps}
+          onPartPointerOver={handlePointerOver}
+          onPartPointerOut={handlePointerOut}
+          onPartClick={handleClick}
         >
           <sphereGeometry args={[0.65, 64, 64]} />
-          <meshPhysicalMaterial {...getMaterialProps('skull', '#f8fafc', 'skeletal')} />
-        </mesh>
+        </BodyPart>
 
         {/* Spine */}
-        <mesh 
-          position={[0, 4.6, -0.25]} 
-          onPointerOver={(e) => handlePointerOver(e, 'spine')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'spine')}
-          castShadow
+        <BodyPart
+          id="spine"
+          system="skeletal"
+          baseColor="#f1f5f9"
+          position={[0, 4.6, -0.25]}
+          getMaterialProps={getMaterialProps}
+          onPartPointerOver={handlePointerOver}
+          onPartPointerOut={handlePointerOut}
+          onPartClick={handleClick}
         >
           <cylinderGeometry args={[0.18, 0.18, 2.8, 32]} />
-          <meshPhysicalMaterial {...getMaterialProps('spine', '#f1f5f9', 'skeletal')} />
-        </mesh>
+        </BodyPart>
 
         {/* Ribcage */}
-        <mesh 
-          position={[0, 5.0, 0]} 
-          onPointerOver={(e) => handlePointerOver(e, 'ribcage')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'ribcage')}
-          castShadow
+        <BodyPart
+          id="ribcage"
+          system="skeletal"
+          baseColor="#f1f5f9"
+          position={[0, 5.0, 0]}
+          getMaterialProps={getMaterialProps}
+          onPartPointerOver={handlePointerOver}
+          onPartPointerOut={handlePointerOut}
+          onPartClick={handleClick}
+          materialOverrides={{ wireframe: true }}
         >
           <sphereGeometry args={[0.9, 32, 32]} />
-          <meshPhysicalMaterial {...getMaterialProps('ribcage', '#f1f5f9', 'skeletal')} wireframe={true} />
-        </mesh>
+        </BodyPart>
 
         {/* Arms */}
         <group>
-          <mesh 
-            position={[-1.3, 4.8, 0]} rotation={[0, 0, 0.3]}
-            onPointerOver={(e) => handlePointerOver(e, 'humerus')}
-            onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, 'humerus')}
-            castShadow
+          <BodyPart
+            id="humerus"
+            system="skeletal"
+            baseColor="#f1f5f9"
+            position={[-1.3, 4.8, 0]}
+            rotation={[0, 0, 0.3]}
+            getMaterialProps={getMaterialProps}
+            onPartPointerOver={handlePointerOver}
+            onPartPointerOut={handlePointerOut}
+            onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.12, 0.12, 1.8, 16]} />
-            <meshPhysicalMaterial {...getMaterialProps('humerus', '#f1f5f9', 'skeletal')} />
-          </mesh>
-          <mesh 
-            position={[1.3, 4.8, 0]} rotation={[0, 0, -0.3]}
-            onPointerOver={(e) => handlePointerOver(e, 'humerus')}
-            onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, 'humerus')}
-            castShadow
+          </BodyPart>
+          <BodyPart
+            id="humerus"
+            system="skeletal"
+            baseColor="#f1f5f9"
+            position={[1.3, 4.8, 0]}
+            rotation={[0, 0, -0.3]}
+            getMaterialProps={getMaterialProps}
+            onPartPointerOver={handlePointerOver}
+            onPartPointerOut={handlePointerOut}
+            onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.12, 0.12, 1.8, 16]} />
-            <meshPhysicalMaterial {...getMaterialProps('humerus', '#f1f5f9', 'skeletal')} />
-          </mesh>
+          </BodyPart>
         </group>
 
         {/* Legs */}
         <group>
-          <mesh 
+          <BodyPart
+            id="femur"
+            system="skeletal"
+            baseColor="#f1f5f9"
             position={[-0.6, 2.2, 0]}
-            onPointerOver={(e) => handlePointerOver(e, 'femur')}
-            onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, 'femur')}
-            castShadow
+            getMaterialProps={getMaterialProps}
+            onPartPointerOver={handlePointerOver}
+            onPartPointerOut={handlePointerOut}
+            onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.18, 0.14, 2.4, 16]} />
-            <meshPhysicalMaterial {...getMaterialProps('femur', '#f1f5f9', 'skeletal')} />
             {activeDisease === 'broken_bone' && (
               <mesh position={[0, 0.2, 0.18]}>
                 <boxGeometry args={[0.5, 0.08, 0.08]} />
                 <meshBasicMaterial color="#ff3333" />
               </mesh>
             )}
-          </mesh>
-          <mesh 
+          </BodyPart>
+          <BodyPart
+            id="femur"
+            system="skeletal"
+            baseColor="#f1f5f9"
             position={[0.6, 2.2, 0]}
-            onPointerOver={(e) => handlePointerOver(e, 'femur')}
-            onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, 'femur')}
-            castShadow
+            getMaterialProps={getMaterialProps}
+            onPartPointerOver={handlePointerOver}
+            onPartPointerOut={handlePointerOut}
+            onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.18, 0.14, 2.4, 16]} />
-            <meshPhysicalMaterial {...getMaterialProps('femur', '#f1f5f9', 'skeletal')} />
-          </mesh>
+          </BodyPart>
         </group>
       </group>
 
@@ -347,71 +406,82 @@ function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }
       <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
         {/* --- CIRCULATORY SYSTEM --- */}
         <group visible={isVisible('circulatory') || activeSystem === 'all'}>
-          <mesh 
+          <BodyPart
             ref={heartRef}
-            position={[0.25, 5.0, 0.3]} 
-            onPointerOver={(e) => handlePointerOver(e, 'heart')}
-            onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, 'heart')}
-            castShadow
+            id="heart"
+            system="circulatory"
+            baseColor="#dc2626"
+            position={[0.25, 5.0, 0.3]}
+            getMaterialProps={getMaterialProps}
+            onPartPointerOver={handlePointerOver}
+            onPartPointerOut={handlePointerOut}
+            onPartClick={handleClick}
           >
             <sphereGeometry args={[0.3, 64, 64]} />
-            <meshPhysicalMaterial {...getMaterialProps('heart', '#dc2626', 'circulatory')} />
-          </mesh>
+          </BodyPart>
         </group>
 
         {/* --- NERVOUS SYSTEM --- */}
         <group visible={isVisible('nervous') || activeSystem === 'all'}>
-          <mesh 
-            position={[0, 6.8, 0.1]} 
+          <BodyPart
+            id="brain"
+            system="nervous"
+            baseColor="#fbbf24"
+            position={[0, 6.8, 0.1]}
             scale={[0.85, 0.85, 0.85]}
-            onPointerOver={(e) => handlePointerOver(e, 'brain')}
-            onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, 'brain')}
+            getMaterialProps={getMaterialProps}
+            onPartPointerOver={handlePointerOver}
+            onPartPointerOut={handlePointerOut}
+            onPartClick={handleClick}
           >
             <sphereGeometry args={[0.6, 64, 64]} />
-            <meshPhysicalMaterial {...getMaterialProps('brain', '#fbbf24', 'nervous')} />
-          </mesh>
+          </BodyPart>
         </group>
 
         {/* --- DIGESTIVE SYSTEM --- */}
         <group visible={isVisible('digestive') || activeSystem === 'all'}>
-          <mesh 
-            position={[-0.25, 3.8, 0.3]} 
+          <BodyPart
+            id="stomach"
+            system="digestive"
+            baseColor="#ea580c"
+            position={[-0.25, 3.8, 0.3]}
             rotation={[0, 0, -0.6]}
-            onPointerOver={(e) => handlePointerOver(e, 'stomach')}
-            onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, 'stomach')}
-            castShadow
+            getMaterialProps={getMaterialProps}
+            onPartPointerOver={handlePointerOver}
+            onPartPointerOut={handlePointerOut}
+            onPartClick={handleClick}
           >
             <capsuleGeometry args={[0.25, 0.5, 32, 32]} />
-            <meshPhysicalMaterial {...getMaterialProps('stomach', '#ea580c', 'digestive')} />
-          </mesh>
+          </BodyPart>
         </group>
 
         {/* --- RESPIRATORY SYSTEM --- */}
         <group visible={isVisible('respiratory') || activeSystem === 'all'}>
           <group ref={lungsRef} position={[0, 5.0, 0.2]}>
-            <mesh 
-              position={[-0.45, 0, 0]} 
-              onPointerOver={(e) => handlePointerOver(e, 'lungs')}
-              onPointerOut={handlePointerOut}
-              onClick={(e) => handleClick(e, 'lungs')}
-              castShadow
+            <BodyPart
+              id="lungs"
+              system="respiratory"
+              baseColor="#db2777"
+              position={[-0.45, 0, 0]}
+              getMaterialProps={getMaterialProps}
+              onPartPointerOver={handlePointerOver}
+              onPartPointerOut={handlePointerOut}
+              onPartClick={handleClick}
             >
               <capsuleGeometry args={[0.3, 0.6, 32, 32]} />
-              <meshPhysicalMaterial {...getMaterialProps('lungs', '#db2777', 'respiratory')} />
-            </mesh>
-            <mesh 
-              position={[0.45, 0, 0]} 
-              onPointerOver={(e) => handlePointerOver(e, 'lungs')}
-              onPointerOut={handlePointerOut}
-              onClick={(e) => handleClick(e, 'lungs')}
-              castShadow
+            </BodyPart>
+            <BodyPart
+              id="lungs"
+              system="respiratory"
+              baseColor="#db2777"
+              position={[0.45, 0, 0]}
+              getMaterialProps={getMaterialProps}
+              onPartPointerOver={handlePointerOver}
+              onPartPointerOut={handlePointerOut}
+              onPartClick={handleClick}
             >
               <capsuleGeometry args={[0.3, 0.6, 32, 32]} />
-              <meshPhysicalMaterial {...getMaterialProps('lungs', '#db2777', 'respiratory')} />
-            </mesh>
+            </BodyPart>
           </group>
         </group>
       </Float>
