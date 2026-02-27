@@ -40,7 +40,8 @@ export default function HumanBodyCanvas({
           penumbra={1} 
           intensity={2} 
           castShadow 
-          shadow-mapSize={[2048, 2048]}
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
         />
         <pointLight position={[-10, 5, -10]} intensity={1.5} color="#4444ff" />
         <pointLight position={[10, -5, 5]} intensity={1} color="#ff4444" />
@@ -74,16 +75,16 @@ export default function HumanBodyCanvas({
           <Environment preset="night" />
           
           {/* Post Processing */}
-          <EffectComposer>
+          <EffectComposer enableNormalPass>
             <SSAO 
               intensity={1.5}
               radius={0.4}
               luminanceInfluence={0.5}
               color={new THREE.Color(0x000000)}
-              worldDistanceThreshold={0.0}
-              worldDistanceFalloff={0.0}
-              worldProximityThreshold={0.0}
-              worldProximityFalloff={0.0}
+              worldDistanceThreshold={1.0}
+              worldDistanceFalloff={0.5}
+              worldProximityThreshold={0.5}
+              worldProximityFalloff={0.2}
             />
             <Bloom 
               intensity={0.5} 
