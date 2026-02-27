@@ -3,7 +3,7 @@ import { Suspense, useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, Html, useCursor, Float } from '@react-three/drei';
 import { EffectComposer, Bloom, SSAO, Vignette, Noise, ToneMapping } from '@react-three/postprocessing';
-import { SystemType, DiseaseType, BODY_PARTS, DISEASES } from '../data';
+import { SystemType, DiseaseType, DISEASES } from '../data';
 import * as THREE from 'three';
 
 interface HumanBodyCanvasProps {
