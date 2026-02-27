@@ -1,0 +1,5 @@
+{
+  "name": "Anatomy Explorer 3D",
+  "description": "An interactive 3D human body explorer featuring organ systems, skeletal views, and pathology visualizations.",
+  "requestFramePermissions": []
+}
