@@ -1,6 +1,7 @@
-import React, { Suspense, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, Html, useCursor } from '@react-three/drei';
+import React, { Suspense, useRef, useMemo } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { OrbitControls, Environment, ContactShadows, Html, useCursor, Float } from '@react-three/drei';
+import { EffectComposer, Bloom, SSAO, Vignette, Noise, ToneMapping } from '@react-three/postprocessing';
 import { SystemType, DiseaseType, BODY_PARTS, DISEASES } from '../data';
 import * as THREE from 'three';
 
@@ -19,36 +20,88 @@ export default function HumanBodyCanvas({
 }: HumanBodyCanvasProps) {
   return (
     <div className="w-full h-full bg-zinc-950">
-      <Canvas shadows camera={{ position: [0, 0, 10], fov: 45 }}>
-        <color attach="background" args={['#09090b']} />
-        <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-        <pointLight position={[-10, -10, -10]} intensity={0.5} />
+      <Canvas 
+        shadows 
+        camera={{ position: [0, 2, 10], fov: 40 }}
+        gl={{ 
+          antialias: true, 
+          toneMapping: THREE.ACESFilmicToneMapping,
+          outputColorSpace: THREE.SRGBColorSpace
+        }}
+      >
+        <color attach="background" args={['#050505']} />
+        
+        {/* Cinematic Lighting */}
+        <ambientLight intensity={0.2} />
+        <spotLight 
+          position={[10, 15, 10]} 
+          angle={0.3} 
+          penumbra={1} 
+          intensity={2} 
+          castShadow 
+          shadow-mapSize={[2048, 2048]}
+        />
+        <pointLight position={[-10, 5, -10]} intensity={1.5} color="#4444ff" />
+        <pointLight position={[10, -5, 5]} intensity={1} color="#ff4444" />
+        <directionalLight position={[0, 10, 0]} intensity={0.5} />
         
         <Suspense fallback={
           <Html center>
-            <div className="text-zinc-400 animate-pulse">Loading Model...</div>
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <div className="text-emerald-500 font-medium tracking-widest uppercase text-xs">Initializing Anatomy</div>
+            </div>
           </Html>
         }>
-          <group position={[0, -3, 0]}>
+          <group position={[0, -3.5, 0]}>
             <HumanBody 
               activeSystem={activeSystem} 
               activeDisease={activeDisease}
               selectedPartId={selectedPartId}
               onSelectPart={onSelectPart}
             />
-            <ContactShadows position={[0, -0.1, 0]} opacity={0.4} scale={10} blur={2} far={4} />
+            <ContactShadows 
+              position={[0, -0.01, 0]} 
+              opacity={0.6} 
+              scale={12} 
+              blur={2.5} 
+              far={4} 
+              color="#000000"
+            />
           </group>
+          
+          <Environment preset="night" />
+          
+          {/* Post Processing */}
+          <EffectComposer>
+            <SSAO 
+              intensity={1.5}
+              radius={0.4}
+              luminanceInfluence={0.5}
+              color={new THREE.Color(0x000000)}
+            />
+            <Bloom 
+              intensity={0.5} 
+              luminanceThreshold={0.8} 
+              luminanceSmoothing={0.9} 
+              mipmapBlur 
+            />
+            <Noise opacity={0.02} />
+            <Vignette eskil={false} offset={0.1} darkness={1.1} />
+            <ToneMapping mode={THREE.ACESFilmicToneMapping} />
+          </EffectComposer>
         </Suspense>
         
         <OrbitControls 
-          enablePan={true} 
+          enablePan={false} 
           enableZoom={true} 
-          minDistance={3} 
-          maxDistance={15}
-          target={[0, 3, 0]}
+          minDistance={4} 
+          maxDistance={12}
+          target={[0, 3.5, 0]}
+          makeDefault
+          autoRotate={!selectedPartId && activeSystem === 'all' && activeDisease === 'none'}
+          autoRotateSpeed={0.5}
         />
-        <Environment preset="city" />
       </Canvas>
     </div>
   );
@@ -91,46 +144,74 @@ function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }
     let emissive = new THREE.Color(0x000000);
     let opacity = 1;
     let transparent = false;
+    let roughness = 0.3;
+    let metalness = 0.1;
+    let transmission = 0;
+    let thickness = 0;
+
+    // Organic look for organs
+    if (system !== 'skeletal') {
+      roughness = 0.2;
+      transmission = 0.1;
+      thickness = 0.5;
+    }
 
     // Dim non-selected parts if something is selected
     if (selectedPartId && !isSelected) {
-      opacity = 0.3;
+      opacity = 0.15;
       transparent = true;
     }
 
     // Highlight hovered
     if (isHovered && !isSelected) {
-      emissive.setHex(0x333333);
+      emissive.setHex(0x222222);
+      metalness = 0.3;
     }
 
     // Highlight selected
     if (isSelected) {
-      emissive.setHex(0x444444);
-      color.lerp(new THREE.Color(0xffffff), 0.2);
+      emissive.setHex(0x333333);
+      color.lerp(new THREE.Color(0xffffff), 0.3);
+      metalness = 0.4;
+      roughness = 0.1;
     }
 
     // Disease effects
     if (isAffected) {
       if (activeDisease === 'heart_attack') {
-        color.setHex(0x4a0000); // Dark red
-        emissive.setHex(0x220000);
+        color.setHex(0x330000);
+        emissive.setHex(0x110000);
+        roughness = 0.8;
       } else if (activeDisease === 'broken_bone') {
-        color.setHex(0xffaaaa); // Reddish tint
-        emissive.setHex(0x440000);
+        color.setHex(0xffcccc);
+        emissive.setHex(0x330000);
       } else if (activeDisease === 'common_cold') {
-        color.setHex(0x88cc88); // Sickly green
-        emissive.setHex(0x002200);
+        color.setHex(0x66aa66);
+        emissive.setHex(0x001100);
+        transmission = 0.3;
       }
     }
 
     // Ghost effect for other systems when one is active
     if (activeSystem !== 'all' && activeSystem !== system) {
-      opacity = 0.1;
+      opacity = 0.05;
       transparent = true;
-      color.setHex(0x888888);
+      color.setHex(0x444444);
     }
 
-    return { color, emissive, opacity, transparent, roughness: 0.4, metalness: 0.1 };
+    return { 
+      color, 
+      emissive, 
+      opacity, 
+      transparent, 
+      roughness, 
+      metalness, 
+      transmission, 
+      thickness,
+      envMapIntensity: 1.5,
+      clearcoat: system === 'skeletal' ? 0.5 : 0.2,
+      clearcoatRoughness: 0.1
+    };
   };
 
   // Animation logic
@@ -142,24 +223,20 @@ function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }
     
     if (heartRef.current) {
       if (activeDisease === 'heart_attack') {
-        // Irregular, weak beating
-        const scale = 1 + Math.sin(time * 15) * 0.02 * Math.random();
+        const scale = 1 + Math.sin(time * 18) * 0.015 * Math.random();
         heartRef.current.scale.set(scale, scale, scale);
       } else {
-        // Normal beating
-        const scale = 1 + Math.sin(time * 5) * 0.05;
+        const scale = 1 + Math.sin(time * 4.5) * 0.06;
         heartRef.current.scale.set(scale, scale, scale);
       }
     }
 
     if (lungsRef.current) {
       if (activeDisease === 'common_cold') {
-        // Shallow, rapid breathing
-        const scale = 1 + Math.sin(time * 3) * 0.02;
+        const scale = 1 + Math.sin(time * 3.5) * 0.02;
         lungsRef.current.scale.set(scale, scale, scale);
       } else {
-        // Normal breathing
-        const scale = 1 + Math.sin(time * 2) * 0.05;
+        const scale = 1 + Math.sin(time * 1.8) * 0.07;
         lungsRef.current.scale.set(scale, scale, scale);
       }
     }
@@ -171,196 +248,183 @@ function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }
       <group visible={isVisible('skeletal') || activeSystem === 'all'}>
         {/* Skull */}
         <mesh 
-          position={[0, 6.5, 0]} 
+          position={[0, 6.8, 0]} 
           onPointerOver={(e) => handlePointerOver(e, 'skull')}
           onPointerOut={handlePointerOut}
           onClick={(e) => handleClick(e, 'skull')}
           castShadow
         >
-          <sphereGeometry args={[0.6, 32, 32]} />
-          <meshStandardMaterial {...getMaterialProps('skull', '#e2e8f0', 'skeletal')} />
+          <sphereGeometry args={[0.65, 64, 64]} />
+          <meshPhysicalMaterial {...getMaterialProps('skull', '#f8fafc', 'skeletal')} />
         </mesh>
 
         {/* Spine */}
         <mesh 
-          position={[0, 4.5, -0.2]} 
+          position={[0, 4.6, -0.25]} 
           onPointerOver={(e) => handlePointerOver(e, 'spine')}
           onPointerOut={handlePointerOut}
           onClick={(e) => handleClick(e, 'spine')}
           castShadow
         >
-          <cylinderGeometry args={[0.15, 0.15, 2.5, 16]} />
-          <meshStandardMaterial {...getMaterialProps('spine', '#e2e8f0', 'skeletal')} />
+          <cylinderGeometry args={[0.18, 0.18, 2.8, 32]} />
+          <meshPhysicalMaterial {...getMaterialProps('spine', '#f1f5f9', 'skeletal')} />
         </mesh>
 
         {/* Ribcage */}
         <mesh 
-          position={[0, 4.8, 0]} 
+          position={[0, 5.0, 0]} 
           onPointerOver={(e) => handlePointerOver(e, 'ribcage')}
           onPointerOut={handlePointerOut}
           onClick={(e) => handleClick(e, 'ribcage')}
           castShadow
         >
-          <sphereGeometry args={[0.8, 16, 16]} />
-          <meshStandardMaterial {...getMaterialProps('ribcage', '#e2e8f0', 'skeletal')} wireframe={true} />
+          <sphereGeometry args={[0.9, 32, 32]} />
+          <meshPhysicalMaterial {...getMaterialProps('ribcage', '#f1f5f9', 'skeletal')} wireframe={true} />
         </mesh>
 
-        {/* Left Humerus */}
-        <mesh 
-          position={[-1.2, 4.5, 0]} rotation={[0, 0, 0.2]}
-          onPointerOver={(e) => handlePointerOver(e, 'humerus')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'humerus')}
-          castShadow
-        >
-          <cylinderGeometry args={[0.1, 0.1, 1.5, 16]} />
-          <meshStandardMaterial {...getMaterialProps('humerus', '#e2e8f0', 'skeletal')} />
-        </mesh>
-
-        {/* Right Humerus */}
-        <mesh 
-          position={[1.2, 4.5, 0]} rotation={[0, 0, -0.2]}
-          onPointerOver={(e) => handlePointerOver(e, 'humerus')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'humerus')}
-          castShadow
-        >
-          <cylinderGeometry args={[0.1, 0.1, 1.5, 16]} />
-          <meshStandardMaterial {...getMaterialProps('humerus', '#e2e8f0', 'skeletal')} />
-        </mesh>
-
-        {/* Left Femur */}
-        <mesh 
-          position={[-0.5, 2, 0]}
-          onPointerOver={(e) => handlePointerOver(e, 'femur')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'femur')}
-          castShadow
-        >
-          <cylinderGeometry args={[0.15, 0.12, 2, 16]} />
-          <meshStandardMaterial {...getMaterialProps('femur', '#e2e8f0', 'skeletal')} />
-          
-          {/* Fracture visual for broken bone */}
-          {activeDisease === 'broken_bone' && (
-            <mesh position={[0, 0, 0.16]}>
-              <boxGeometry args={[0.4, 0.1, 0.1]} />
-              <meshBasicMaterial color="#ff0000" />
-            </mesh>
-          )}
-        </mesh>
-
-        {/* Right Femur */}
-        <mesh 
-          position={[0.5, 2, 0]}
-          onPointerOver={(e) => handlePointerOver(e, 'femur')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'femur')}
-          castShadow
-        >
-          <cylinderGeometry args={[0.15, 0.12, 2, 16]} />
-          <meshStandardMaterial {...getMaterialProps('femur', '#e2e8f0', 'skeletal')} />
-        </mesh>
-      </group>
-
-      {/* --- CIRCULATORY SYSTEM --- */}
-      <group visible={isVisible('circulatory') || activeSystem === 'all'}>
-        {/* Heart */}
-        <mesh 
-          ref={heartRef}
-          position={[0.2, 4.8, 0.2]} 
-          onPointerOver={(e) => handlePointerOver(e, 'heart')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'heart')}
-          castShadow
-        >
-          <sphereGeometry args={[0.25, 32, 32]} />
-          <meshStandardMaterial {...getMaterialProps('heart', '#ef4444', 'circulatory')} />
-        </mesh>
-        
-        {/* Abstract Veins/Arteries (only visible when circulatory is isolated) */}
-        {activeSystem === 'circulatory' && (
-          <group>
-            {/* Aorta */}
-            <mesh position={[0, 4.5, 0.1]}>
-              <cylinderGeometry args={[0.05, 0.05, 3, 8]} />
-              <meshStandardMaterial color="#ef4444" />
-            </mesh>
-            {/* Vena Cava */}
-            <mesh position={[-0.1, 4.5, 0.1]}>
-              <cylinderGeometry args={[0.05, 0.05, 3, 8]} />
-              <meshStandardMaterial color="#3b82f6" />
-            </mesh>
-          </group>
-        )}
-      </group>
-
-      {/* --- NERVOUS SYSTEM --- */}
-      <group visible={isVisible('nervous') || activeSystem === 'all'}>
-        {/* Brain */}
-        <mesh 
-          position={[0, 6.5, 0]} 
-          scale={[0.8, 0.8, 0.8]}
-          onPointerOver={(e) => handlePointerOver(e, 'brain')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'brain')}
-        >
-          <sphereGeometry args={[0.6, 32, 32]} />
-          <meshStandardMaterial {...getMaterialProps('brain', '#fde047', 'nervous')} />
-        </mesh>
-      </group>
-
-      {/* --- DIGESTIVE SYSTEM --- */}
-      <group visible={isVisible('digestive') || activeSystem === 'all'}>
-        {/* Stomach */}
-        <mesh 
-          position={[-0.2, 3.8, 0.2]} 
-          rotation={[0, 0, -0.5]}
-          onPointerOver={(e) => handlePointerOver(e, 'stomach')}
-          onPointerOut={handlePointerOut}
-          onClick={(e) => handleClick(e, 'stomach')}
-          castShadow
-        >
-          <capsuleGeometry args={[0.2, 0.4, 16, 16]} />
-          <meshStandardMaterial {...getMaterialProps('stomach', '#fb923c', 'digestive')} />
-        </mesh>
-      </group>
-
-      {/* --- RESPIRATORY SYSTEM --- */}
-      <group visible={isVisible('respiratory') || activeSystem === 'all'}>
-        {/* Lungs */}
-        <group ref={lungsRef} position={[0, 4.8, 0.1]}>
-          {/* Left Lung */}
+        {/* Arms */}
+        <group>
           <mesh 
-            position={[-0.4, 0, 0]} 
-            onPointerOver={(e) => handlePointerOver(e, 'lungs')}
+            position={[-1.3, 4.8, 0]} rotation={[0, 0, 0.3]}
+            onPointerOver={(e) => handlePointerOver(e, 'humerus')}
             onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, 'lungs')}
+            onClick={(e) => handleClick(e, 'humerus')}
             castShadow
           >
-            <capsuleGeometry args={[0.25, 0.5, 16, 16]} />
-            <meshStandardMaterial {...getMaterialProps('lungs', '#f472b6', 'respiratory')} />
+            <cylinderGeometry args={[0.12, 0.12, 1.8, 16]} />
+            <meshPhysicalMaterial {...getMaterialProps('humerus', '#f1f5f9', 'skeletal')} />
           </mesh>
-          {/* Right Lung */}
           <mesh 
-            position={[0.4, 0, 0]} 
-            onPointerOver={(e) => handlePointerOver(e, 'lungs')}
+            position={[1.3, 4.8, 0]} rotation={[0, 0, -0.3]}
+            onPointerOver={(e) => handlePointerOver(e, 'humerus')}
             onPointerOut={handlePointerOut}
-            onClick={(e) => handleClick(e, 'lungs')}
+            onClick={(e) => handleClick(e, 'humerus')}
             castShadow
           >
-            <capsuleGeometry args={[0.25, 0.5, 16, 16]} />
-            <meshStandardMaterial {...getMaterialProps('lungs', '#f472b6', 'respiratory')} />
+            <cylinderGeometry args={[0.12, 0.12, 1.8, 16]} />
+            <meshPhysicalMaterial {...getMaterialProps('humerus', '#f1f5f9', 'skeletal')} />
+          </mesh>
+        </group>
+
+        {/* Legs */}
+        <group>
+          <mesh 
+            position={[-0.6, 2.2, 0]}
+            onPointerOver={(e) => handlePointerOver(e, 'femur')}
+            onPointerOut={handlePointerOut}
+            onClick={(e) => handleClick(e, 'femur')}
+            castShadow
+          >
+            <cylinderGeometry args={[0.18, 0.14, 2.4, 16]} />
+            <meshPhysicalMaterial {...getMaterialProps('femur', '#f1f5f9', 'skeletal')} />
+            {activeDisease === 'broken_bone' && (
+              <mesh position={[0, 0.2, 0.18]}>
+                <boxGeometry args={[0.5, 0.08, 0.08]} />
+                <meshBasicMaterial color="#ff3333" />
+              </mesh>
+            )}
+          </mesh>
+          <mesh 
+            position={[0.6, 2.2, 0]}
+            onPointerOver={(e) => handlePointerOver(e, 'femur')}
+            onPointerOut={handlePointerOut}
+            onClick={(e) => handleClick(e, 'femur')}
+            castShadow
+          >
+            <cylinderGeometry args={[0.18, 0.14, 2.4, 16]} />
+            <meshPhysicalMaterial {...getMaterialProps('femur', '#f1f5f9', 'skeletal')} />
           </mesh>
         </group>
       </group>
 
+      {/* --- ORGANS WITH FLOAT EFFECT --- */}
+      <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
+        {/* --- CIRCULATORY SYSTEM --- */}
+        <group visible={isVisible('circulatory') || activeSystem === 'all'}>
+          <mesh 
+            ref={heartRef}
+            position={[0.25, 5.0, 0.3]} 
+            onPointerOver={(e) => handlePointerOver(e, 'heart')}
+            onPointerOut={handlePointerOut}
+            onClick={(e) => handleClick(e, 'heart')}
+            castShadow
+          >
+            <sphereGeometry args={[0.3, 64, 64]} />
+            <meshPhysicalMaterial {...getMaterialProps('heart', '#dc2626', 'circulatory')} />
+          </mesh>
+        </group>
+
+        {/* --- NERVOUS SYSTEM --- */}
+        <group visible={isVisible('nervous') || activeSystem === 'all'}>
+          <mesh 
+            position={[0, 6.8, 0.1]} 
+            scale={[0.85, 0.85, 0.85]}
+            onPointerOver={(e) => handlePointerOver(e, 'brain')}
+            onPointerOut={handlePointerOut}
+            onClick={(e) => handleClick(e, 'brain')}
+          >
+            <sphereGeometry args={[0.6, 64, 64]} />
+            <meshPhysicalMaterial {...getMaterialProps('brain', '#fbbf24', 'nervous')} />
+          </mesh>
+        </group>
+
+        {/* --- DIGESTIVE SYSTEM --- */}
+        <group visible={isVisible('digestive') || activeSystem === 'all'}>
+          <mesh 
+            position={[-0.25, 3.8, 0.3]} 
+            rotation={[0, 0, -0.6]}
+            onPointerOver={(e) => handlePointerOver(e, 'stomach')}
+            onPointerOut={handlePointerOut}
+            onClick={(e) => handleClick(e, 'stomach')}
+            castShadow
+          >
+            <capsuleGeometry args={[0.25, 0.5, 32, 32]} />
+            <meshPhysicalMaterial {...getMaterialProps('stomach', '#ea580c', 'digestive')} />
+          </mesh>
+        </group>
+
+        {/* --- RESPIRATORY SYSTEM --- */}
+        <group visible={isVisible('respiratory') || activeSystem === 'all'}>
+          <group ref={lungsRef} position={[0, 5.0, 0.2]}>
+            <mesh 
+              position={[-0.45, 0, 0]} 
+              onPointerOver={(e) => handlePointerOver(e, 'lungs')}
+              onPointerOut={handlePointerOut}
+              onClick={(e) => handleClick(e, 'lungs')}
+              castShadow
+            >
+              <capsuleGeometry args={[0.3, 0.6, 32, 32]} />
+              <meshPhysicalMaterial {...getMaterialProps('lungs', '#db2777', 'respiratory')} />
+            </mesh>
+            <mesh 
+              position={[0.45, 0, 0]} 
+              onPointerOver={(e) => handlePointerOver(e, 'lungs')}
+              onPointerOut={handlePointerOut}
+              onClick={(e) => handleClick(e, 'lungs')}
+              castShadow
+            >
+              <capsuleGeometry args={[0.3, 0.6, 32, 32]} />
+              <meshPhysicalMaterial {...getMaterialProps('lungs', '#db2777', 'respiratory')} />
+            </mesh>
+          </group>
+        </group>
+      </Float>
+
       {/* Outer Body Shell (Ghosted) */}
       {activeSystem !== 'all' && (
         <mesh position={[0, 4.2, 0]}>
-          <capsuleGeometry args={[1.2, 3.5, 32, 32]} />
-          <meshStandardMaterial color="#ffffff" transparent opacity={0.05} depthWrite={false} />
+          <capsuleGeometry args={[1.3, 3.8, 32, 32]} />
+          <meshPhysicalMaterial 
+            color="#ffffff" 
+            transparent 
+            opacity={0.03} 
+            depthWrite={false} 
+            roughness={0}
+            metalness={0.5}
+          />
         </mesh>
       )}
     </group>
   );
 }
+
