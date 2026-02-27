@@ -31,20 +31,23 @@ export default function Sidebar({
 
       <div className="flex p-2 gap-1 bg-zinc-950/50 border-b border-zinc-800">
         <TabButton 
+          id="systems"
           active={activeTab === 'systems'} 
-          onClick={() => onTabChange('systems')}
+          onClick={onTabChange}
           icon={<Heart className="w-4 h-4" />}
           label="Systems"
         />
         <TabButton 
+          id="skeletal"
           active={activeTab === 'skeletal'} 
-          onClick={() => onTabChange('skeletal')}
+          onClick={onTabChange}
           icon={<Bone className="w-4 h-4" />}
           label="Skeletal"
         />
         <TabButton 
+          id="diseases"
           active={activeTab === 'diseases'} 
-          onClick={() => onTabChange('diseases')}
+          onClick={onTabChange}
           icon={<Stethoscope className="w-4 h-4" />}
           label="Diseases"
         />
@@ -55,32 +58,37 @@ export default function Sidebar({
           <div className="space-y-2">
             <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">Organ Systems</h2>
             <SystemButton 
+              id="all"
               active={activeSystem === 'all'} 
-              onClick={() => onSystemChange('all')}
+              onClick={onSystemChange}
               icon={<Activity className="w-5 h-5" />}
               label="Full Body"
             />
             <SystemButton 
+              id="circulatory"
               active={activeSystem === 'circulatory'} 
-              onClick={() => onSystemChange('circulatory')}
+              onClick={onSystemChange}
               icon={<Heart className="w-5 h-5 text-rose-400" />}
               label="Circulatory System"
             />
             <SystemButton 
+              id="nervous"
               active={activeSystem === 'nervous'} 
-              onClick={() => onSystemChange('nervous')}
+              onClick={onSystemChange}
               icon={<Brain className="w-5 h-5 text-yellow-400" />}
               label="Nervous System"
             />
             <SystemButton 
+              id="digestive"
               active={activeSystem === 'digestive'} 
-              onClick={() => onSystemChange('digestive')}
+              onClick={onSystemChange}
               icon={<Coffee className="w-5 h-5 text-orange-400" />}
               label="Digestive System"
             />
             <SystemButton 
+              id="respiratory"
               active={activeSystem === 'respiratory'} 
-              onClick={() => onSystemChange('respiratory')}
+              onClick={onSystemChange}
               icon={<Wind className="w-5 h-5 text-sky-400" />}
               label="Respiratory System"
             />
@@ -109,15 +117,17 @@ export default function Sidebar({
           <div className="space-y-2">
             <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">Conditions & Pathology</h2>
             <DiseaseButton 
+              id="none"
               active={activeDisease === 'none'} 
-              onClick={() => onDiseaseChange('none')}
+              onClick={onDiseaseChange}
               label="Healthy State"
             />
             {Object.values(DISEASES).map(disease => (
               <DiseaseButton 
                 key={disease.id}
+                id={disease.id as DiseaseType}
                 active={activeDisease === disease.id as DiseaseType} 
-                onClick={() => onDiseaseChange(disease.id as DiseaseType)}
+                onClick={onDiseaseChange}
                 label={disease.name}
               />
             ))}
@@ -140,10 +150,22 @@ export default function Sidebar({
   );
 }
 
-function TabButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
+const TabButton = React.memo(function TabButton({
+  id,
+  active,
+  onClick,
+  icon,
+  label
+}: {
+  id: 'systems' | 'skeletal' | 'diseases',
+  active: boolean,
+  onClick: (id: 'systems' | 'skeletal' | 'diseases') => void,
+  icon: React.ReactNode,
+  label: string
+}) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(id)}
       className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
         active 
           ? 'bg-zinc-800 text-white shadow-sm' 
@@ -154,12 +176,24 @@ function TabButton({ active, onClick, icon, label }: { active: boolean, onClick:
       {label}
     </button>
   );
-}
+});
 
-function SystemButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
+const SystemButton = React.memo(function SystemButton({
+  id,
+  active,
+  onClick,
+  icon,
+  label
+}: {
+  id: SystemType,
+  active: boolean,
+  onClick: (id: SystemType) => void,
+  icon: React.ReactNode,
+  label: string
+}) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(id)}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
         active 
           ? 'bg-zinc-800 text-white border border-zinc-700' 
@@ -172,12 +206,22 @@ function SystemButton({ active, onClick, icon, label }: { active: boolean, onCli
       <span className="font-medium text-sm">{label}</span>
     </button>
   );
-}
+});
 
-function DiseaseButton({ active, onClick, label }: { active: boolean, onClick: () => void, label: string }) {
+const DiseaseButton = React.memo(function DiseaseButton({
+  id,
+  active,
+  onClick,
+  label
+}: {
+  id: DiseaseType,
+  active: boolean,
+  onClick: (id: DiseaseType) => void,
+  label: string
+}) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(id)}
       className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all ${
         active 
           ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
@@ -188,4 +232,4 @@ function DiseaseButton({ active, onClick, label }: { active: boolean, onClick: (
       {active && <div className="w-2 h-2 rounded-full bg-rose-500" />}
     </button>
   );
-}
+});
