@@ -1,4 +1,5 @@
-import React, { Suspense, useRef, useMemo } from 'react';
+import * as React from 'react';
+import { Suspense, useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, Html, useCursor, Float } from '@react-three/drei';
 import { EffectComposer, Bloom, SSAO, Vignette, Noise, ToneMapping } from '@react-three/postprocessing';
@@ -79,6 +80,10 @@ export default function HumanBodyCanvas({
               radius={0.4}
               luminanceInfluence={0.5}
               color={new THREE.Color(0x000000)}
+              worldDistanceThreshold={0.0}
+              worldDistanceFalloff={0.0}
+              worldProximityThreshold={0.0}
+              worldProximityFalloff={0.0}
             />
             <Bloom 
               intensity={0.5} 
@@ -110,7 +115,7 @@ export default function HumanBodyCanvas({
 // Stylized Human Body Component
 function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }: HumanBodyCanvasProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const [hovered, setHovered] = React.useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   useCursor(hovered !== null);
 

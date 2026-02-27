@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { SystemType, DiseaseType, BODY_PARTS, DISEASES } from './data';
 import HumanBodyCanvas from './components/HumanBodyCanvas';
 import Sidebar from './components/Sidebar';

@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { SystemType, DiseaseType, DISEASES } from '../data';
 import { Activity, Bone, Heart, Brain, Stethoscope, Wind, Coffee, ShieldAlert } from 'lucide-react';
 
