@@ -62,6 +62,7 @@ export default function HumanBodyCanvas({
               selectedPartId={selectedPartId}
               onSelectPart={onSelectPart}
             />
+            {/* ContactShadows is expensive; using lighter settings or could be disabled for low-end */}
             <ContactShadows 
               position={[0, -0.01, 0]} 
               opacity={0.6} 
@@ -69,13 +70,17 @@ export default function HumanBodyCanvas({
               blur={2.5} 
               far={4} 
               color="#000000"
+              resolution={256}
+              frames={1}
             />
           </group>
           
           <Environment preset="night" />
           
           {/* Post Processing */}
-          <EffectComposer enableNormalPass>
+          {/* Performance optimization: Disable multisampling (default is 8) and tune SSAO */}
+          <EffectComposer enableNormalPass multisampling={0}>
+            {/* SSAO with reduced samples and resolution for performance */}
             <SSAO 
               intensity={1.5}
               radius={0.4}
@@ -85,6 +90,8 @@ export default function HumanBodyCanvas({
               worldDistanceFalloff={0.5}
               worldProximityThreshold={0.5}
               worldProximityFalloff={0.2}
+              resolutionScale={0.5}
+              samples={16}
             />
             <Bloom 
               intensity={0.5} 
