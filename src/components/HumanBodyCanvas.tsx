@@ -40,8 +40,8 @@ export default function HumanBodyCanvas({
           penumbra={1} 
           intensity={2} 
           castShadow 
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
         />
         <pointLight position={[-10, 5, -10]} intensity={1.5} color="#4444ff" />
         <pointLight position={[10, -5, 5]} intensity={1} color="#ff4444" />
