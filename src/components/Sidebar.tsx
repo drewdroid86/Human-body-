@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { SystemType, DiseaseType } from '../data';
+import { SystemType, DiseaseType, TABS, TabType } from '../data';
 import { Activity, Bone, Heart, Stethoscope } from 'lucide-react';
 import SystemsTab from './sidebar/SystemsTab';
 import SkeletalTab from './sidebar/SkeletalTab';
 import DiseasesTab from './sidebar/DiseasesTab';
 
 interface SidebarProps {
-  activeTab: 'systems' | 'skeletal' | 'diseases';
-  onTabChange: (tab: 'systems' | 'skeletal' | 'diseases') => void;
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
   activeSystem: SystemType;
   onSystemChange: (system: SystemType) => void;
   activeDisease: DiseaseType;
@@ -34,38 +34,41 @@ export default function Sidebar({
 
       <div className="flex p-2 gap-1 bg-zinc-950/50 border-b border-zinc-800">
         <TabButton 
-          active={activeTab === 'systems'} 
-          onClick={() => onTabChange('systems')}
-          icon={<Heart className="w-4 h-4" />}
+          id={TABS.SYSTEMS}
+          active={activeTab === TABS.SYSTEMS}
+          onClick={onTabChange}
+          icon={Heart}
           label="Systems"
         />
         <TabButton 
-          active={activeTab === 'skeletal'} 
-          onClick={() => onTabChange('skeletal')}
-          icon={<Bone className="w-4 h-4" />}
+          id={TABS.SKELETAL}
+          active={activeTab === TABS.SKELETAL}
+          onClick={onTabChange}
+          icon={Bone}
           label="Skeletal"
         />
         <TabButton 
-          active={activeTab === 'diseases'} 
-          onClick={() => onTabChange('diseases')}
-          icon={<Stethoscope className="w-4 h-4" />}
+          id={TABS.DISEASES}
+          active={activeTab === TABS.DISEASES}
+          onClick={onTabChange}
+          icon={Stethoscope}
           label="Diseases"
         />
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {activeTab === 'systems' && (
+        {activeTab === TABS.SYSTEMS && (
           <SystemsTab
             activeSystem={activeSystem}
             onSystemChange={onSystemChange}
           />
         )}
 
-        {activeTab === 'skeletal' && (
+        {activeTab === TABS.SKELETAL && (
           <SkeletalTab />
         )}
 
-        {activeTab === 'diseases' && (
+        {activeTab === TABS.DISEASES && (
           <DiseasesTab
             activeDisease={activeDisease}
             onDiseaseChange={onDiseaseChange}
@@ -76,18 +79,18 @@ export default function Sidebar({
   );
 }
 
-function TabButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
+const TabButton = React.memo(({ id, active, onClick, icon: Icon, label }: { id: TabType, active: boolean, onClick: (id: TabType) => void, icon: React.ElementType<{ className?: string }>, label: string }) => {
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(id)}
       className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
         active 
           ? 'bg-zinc-800 text-white shadow-sm' 
           : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
       }`}
     >
-      {icon}
+      <Icon className="w-4 h-4" />
       {label}
     </button>
   );
-}
+});

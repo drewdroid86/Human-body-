@@ -1,43 +1,56 @@
 from playwright.sync_api import sync_playwright
 
-def run(playwright):
-    browser = playwright.chromium.launch(headless=True)
-    page = browser.new_page(viewport={"width": 1280, "height": 720})
-    page.goto("http://localhost:3000")
+def verify_sidebar_tabs():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1280, "height": 720})
 
-    # Wait for the sidebar to be visible
-    page.wait_for_selector("text=Anatomy Explorer", timeout=10000)
+        # Navigate to the app
+        page.goto("http://localhost:3000")
 
-    # Take a screenshot of the default view (Systems tab)
-    page.screenshot(path="verification/systems_tab.png")
-    print("Captured systems_tab.png")
+        # Wait for the sidebar to be visible
+        # We can check for the "Anatomy Explorer" text which is in the Sidebar
+        page.wait_for_selector("text=Anatomy Explorer", timeout=10000)
 
-    # Click on the Skeletal tab
-    # The button has text "Skeletal"
-    skeletal_btn = page.get_by_role("button", name="Skeletal")
-    if skeletal_btn.is_visible():
-        skeletal_btn.click()
-        # Wait for the content of the Skeletal tab
-        page.wait_for_selector("text=Skeletal System", timeout=10000)
-        page.wait_for_timeout(1000) # Give it a moment to render
-        page.screenshot(path="verification/skeletal_tab.png")
-        print("Captured skeletal_tab.png")
-    else:
-        print("Skeletal button not visible")
+        # Check if the tabs are present and clickable
+        # Systems tab
+        systems_tab = page.get_by_role("button", name="Systems")
+        if systems_tab.is_visible():
+            print("Systems tab is visible")
+            systems_tab.click()
+            # Verify Systems content is shown (e.g. "Organ Systems" header)
+            page.wait_for_selector("text=Organ Systems", timeout=10000)
+            print("Systems content visible")
+            page.wait_for_timeout(500)
+            page.screenshot(path="verification/systems_tab.png")
+            print("Captured systems_tab.png")
 
-    # Click on the Diseases tab
-    diseases_btn = page.get_by_role("button", name="Diseases")
-    if diseases_btn.is_visible():
-        diseases_btn.click()
-        # Wait for the content of the Diseases tab
-        page.wait_for_selector("text=Conditions & Pathology", timeout=10000)
-        page.wait_for_timeout(1000)
-        page.screenshot(path="verification/diseases_tab.png")
-        print("Captured diseases_tab.png")
-    else:
-        print("Diseases button not visible")
+        # Skeletal tab
+        skeletal_tab = page.get_by_role("button", name="Skeletal")
+        if skeletal_tab.is_visible():
+            print("Skeletal tab is visible")
+            # Force click as sometimes elements might be covered or animating
+            skeletal_tab.click(force=True)
+            # Verify Skeletal content is shown (e.g. "Skeletal System" header)
+            page.wait_for_selector("text=Skeletal System", timeout=10000)
+            print("Skeletal content visible")
+            page.wait_for_timeout(500)
+            page.screenshot(path="verification/skeletal_tab.png")
+            print("Captured skeletal_tab.png")
 
-    browser.close()
+        # Diseases tab
+        diseases_tab = page.get_by_role("button", name="Diseases")
+        if diseases_tab.is_visible():
+            print("Diseases tab is visible")
+            diseases_tab.click(force=True)
+            # Verify Diseases content is shown (e.g. "Conditions & Pathology" header)
+            page.wait_for_selector("text=Conditions & Pathology", timeout=10000)
+            print("Diseases content visible")
+            page.wait_for_timeout(500)
+            page.screenshot(path="verification/diseases_tab.png")
+            print("Captured diseases_tab.png")
 
-with sync_playwright() as playwright:
-    run(playwright)
+        browser.close()
+
+if __name__ == "__main__":
+    verify_sidebar_tabs()

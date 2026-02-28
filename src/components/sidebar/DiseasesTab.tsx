@@ -12,15 +12,17 @@ export default function DiseasesTab({ activeDisease, onDiseaseChange }: Diseases
     <div className="space-y-2">
       <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">Conditions & Pathology</h2>
       <DiseaseButton
+        id="none"
         active={activeDisease === 'none'}
-        onClick={() => onDiseaseChange('none')}
+        onClick={onDiseaseChange}
         label="Healthy State"
       />
       {Object.values(DISEASES).map(disease => (
         <DiseaseButton
           key={disease.id}
+          id={disease.id as DiseaseType}
           active={activeDisease === disease.id as DiseaseType}
-          onClick={() => onDiseaseChange(disease.id as DiseaseType)}
+          onClick={onDiseaseChange}
           label={disease.name}
         />
       ))}
@@ -40,10 +42,10 @@ export default function DiseasesTab({ activeDisease, onDiseaseChange }: Diseases
   );
 }
 
-function DiseaseButton({ active, onClick, label }: { active: boolean, onClick: () => void, label: string }) {
+const DiseaseButton = React.memo(({ id, active, onClick, label }: { id: DiseaseType, active: boolean, onClick: (id: DiseaseType) => void, label: string }) => {
   return (
     <button
-      onClick={onClick}
+      onClick={() => onClick(id)}
       className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all ${
         active
           ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
@@ -54,4 +56,4 @@ function DiseaseButton({ active, onClick, label }: { active: boolean, onClick: (
       {active && <div className="w-2 h-2 rounded-full bg-rose-500" />}
     </button>
   );
-}
+});
