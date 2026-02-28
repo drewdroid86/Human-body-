@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { SystemType, DiseaseType, BODY_PARTS, DISEASES, TABS, TabType } from './data';
 import HumanBodyCanvas from './components/HumanBodyCanvas';
 import Sidebar from './components/Sidebar';
@@ -12,7 +12,7 @@ export default function App() {
   const [activeDisease, setActiveDisease] = useState<DiseaseType>('none');
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
 
-  const handleTabChange = (tab: TabType) => {
+  const handleTabChange = useCallback((tab: TabType) => {
     setActiveTab(tab);
     setSelectedPartId(null);
     if (tab === TABS.SKELETAL) {
@@ -24,7 +24,7 @@ export default function App() {
     } else if (tab === TABS.DISEASES) {
       setActiveSystem('all');
     }
-  };
+  }, []);
 
   return (
     <div className="flex h-screen w-full bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
