@@ -37,21 +37,21 @@ export default function Sidebar({
           id={TABS.SYSTEMS}
           active={activeTab === TABS.SYSTEMS}
           onClick={onTabChange}
-          icon={Heart}
+          icon={<Heart className="w-4 h-4" />}
           label="Systems"
         />
         <TabButton 
           id={TABS.SKELETAL}
           active={activeTab === TABS.SKELETAL}
           onClick={onTabChange}
-          icon={Bone}
+          icon={<Bone className="w-4 h-4" />}
           label="Skeletal"
         />
         <TabButton 
           id={TABS.DISEASES}
           active={activeTab === TABS.DISEASES}
           onClick={onTabChange}
-          icon={Stethoscope}
+          icon={<Stethoscope className="w-4 h-4" />}
           label="Diseases"
         />
       </div>
@@ -79,7 +79,7 @@ export default function Sidebar({
   );
 }
 
-const TabButton = React.memo(({ id, active, onClick, icon: Icon, label }: { id: TabType, active: boolean, onClick: (id: TabType) => void, icon: React.ElementType<{ className?: string }>, label: string }) => {
+const TabButton = React.memo(({ id, active, onClick, icon, label }: { id: TabType, active: boolean, onClick: (id: TabType) => void, icon: React.ReactNode, label: string }) => {
   return (
     <button
       onClick={() => onClick(id)}

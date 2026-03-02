@@ -15,46 +15,42 @@ export default function SystemsTab({ activeSystem, onSystemChange }: SystemsTabP
         id="all"
         active={activeSystem === 'all'}
         onClick={onSystemChange}
-        icon={Activity}
+        icon={<Activity className="w-5 h-5" />}
         label="Full Body"
       />
       <SystemButton
         id="circulatory"
         active={activeSystem === 'circulatory'}
         onClick={onSystemChange}
-        icon={Heart}
-        iconColor="text-rose-400"
+        icon={<Heart className="w-5 h-5 text-rose-400" />}
         label="Circulatory System"
       />
       <SystemButton
         id="nervous"
         active={activeSystem === 'nervous'}
         onClick={onSystemChange}
-        icon={Brain}
-        iconColor="text-yellow-400"
+        icon={<Brain className="w-5 h-5 text-yellow-400" />}
         label="Nervous System"
       />
       <SystemButton
         id="digestive"
         active={activeSystem === 'digestive'}
         onClick={onSystemChange}
-        icon={Coffee}
-        iconColor="text-orange-400"
+        icon={<Coffee className="w-5 h-5 text-orange-400" />}
         label="Digestive System"
       />
       <SystemButton
         id="respiratory"
         active={activeSystem === 'respiratory'}
         onClick={onSystemChange}
-        icon={Wind}
-        iconColor="text-sky-400"
+        icon={<Wind className="w-5 h-5 text-sky-400" />}
         label="Respiratory System"
       />
     </div>
   );
 }
 
-const SystemButton = React.memo(({ id, active, onClick, icon: Icon, iconColor, label }: { id: SystemType, active: boolean, onClick: (id: SystemType) => void, icon: React.ElementType<{ className?: string }>, iconColor?: string, label: string }) => {
+const SystemButton = React.memo(({ id, active, onClick, icon, label }: { id: SystemType, active: boolean, onClick: (id: SystemType) => void, icon: React.ReactNode, label: string }) => {
   return (
     <button
       onClick={() => onClick(id)}
@@ -65,7 +61,7 @@ const SystemButton = React.memo(({ id, active, onClick, icon: Icon, iconColor, l
       }`}
     >
       <div className={`p-2 rounded-md ${active ? 'bg-zinc-900' : 'bg-zinc-800'}`}>
-        <Icon className={`w-5 h-5 ${iconColor || ''}`} />
+        {icon}
       </div>
       <span className="font-medium text-sm">{label}</span>
     </button>
