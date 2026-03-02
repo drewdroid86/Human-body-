@@ -167,26 +167,37 @@ function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState<string | null>(null);
 
-  useCursor(hovered !== null);
+function BodyPart({
+  id,
+  system,
+  baseColor,
+  activeSystem,
+  activeDisease,
+  selectedPartId,
+  onSelectPart,
+  children
+}: BodyPartProps) {
+  const [hovered, setHovered] = useState(false);
+  useCursor(hovered);
 
-  const handlePointerOver = (e: any, id: string) => {
+  const handlePointerOver = (e: any) => {
     e.stopPropagation();
-    setHovered(id);
+    setHovered(true);
   };
 
   const handlePointerOut = (e: any) => {
     e.stopPropagation();
-    setHovered(null);
+    setHovered(false);
   };
 
-  const handleClick = (e: any, id: string) => {
+  const handleClick = (e: any) => {
     e.stopPropagation();
     onSelectPart(id === selectedPartId ? null : id);
   };
 
   const getMaterialProps = (id: string, baseColor: string, system: SystemType) => {
     const isSelected = selectedPartId === id;
-    const isHovered = hovered === id;
+    const isHovered = hovered;
     const isAffected = activeDisease !== 'none' && DISEASES[activeDisease].affectedParts.includes(id);
     
     let color = new THREE.Color(baseColor);
