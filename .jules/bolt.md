@@ -1,0 +1,3 @@
+## 2024-05-14 - [React Component Re-render Optimization]
+**Learning:** In a highly interactive 3D app, UI components mapping to frequent interactions (like sidebar buttons) can cause unnecessary re-renders. When using inline arrow functions in the render method, `React.memo` fails to work because the function reference changes on every render.
+**Action:** When wrapping list items or repeated components with `React.memo`, refactor the component to accept an `id` or identifier, and pass the stable parent handler function directly. The child component can then call the handler with its `id`, avoiding inline functions in the parent's render loop. Ensure the parent handler is also stable using `useCallback`.

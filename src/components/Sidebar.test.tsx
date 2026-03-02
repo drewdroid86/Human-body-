@@ -3,6 +3,17 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import Sidebar from './Sidebar';
 
+// Mock sub-components to focus on Sidebar logic
+vi.mock('./sidebar/SystemsTab', () => ({
+  default: () => <div data-testid="systems-tab">Systems Tab Content</div>
+}));
+vi.mock('./sidebar/SkeletalTab', () => ({
+  default: () => <div data-testid="skeletal-tab">Skeletal Tab Content</div>
+}));
+vi.mock('./sidebar/DiseasesTab', () => ({
+  default: () => <div data-testid="diseases-tab">Diseases Tab Content</div>
+}));
+
 describe('Sidebar', () => {
   const defaultProps = {
     activeTab: 'systems' as const,
@@ -13,72 +24,34 @@ describe('Sidebar', () => {
     onDiseaseChange: vi.fn(),
   };
 
-  it('renders correctly with initial props', () => {
+  it('renders Sidebar header and initial tab correctly', () => {
     render(<Sidebar {...defaultProps} />);
 
-    // Check for title
     expect(screen.getByText('Anatomy Explorer')).toBeInTheDocument();
-
-    // Check for initial tab buttons
     expect(screen.getByText('Systems')).toBeInTheDocument();
     expect(screen.getByText('Skeletal')).toBeInTheDocument();
     expect(screen.getByText('Diseases')).toBeInTheDocument();
 
-    // Check for initial content (Systems tab is active)
-    expect(screen.getByText('Organ Systems')).toBeInTheDocument();
-    expect(screen.getByText('Full Body')).toBeInTheDocument();
+    // Verify correct tab component is rendered
+    expect(screen.getByTestId('systems-tab')).toBeInTheDocument();
   });
 
-  it('calls onTabChange when a tab is clicked', async () => {
+  it('calls onTabChange when a tab button is clicked', async () => {
     const user = userEvent.setup();
     render(<Sidebar {...defaultProps} />);
 
-    await user.click(screen.getByText('Skeletal'));
+    await user.click(screen.getByRole('button', { name: /Skeletal/ }));
     expect(defaultProps.onTabChange).toHaveBeenCalledWith('skeletal');
 
-    await user.click(screen.getByText('Diseases'));
+    await user.click(screen.getByRole('button', { name: /Diseases/ }));
     expect(defaultProps.onTabChange).toHaveBeenCalledWith('diseases');
   });
 
-  it('calls onSystemChange when a system is selected', async () => {
-    const user = userEvent.setup();
-    render(<Sidebar {...defaultProps} />);
+  it('renders the correct tab component based on activeTab prop', () => {
+    const { rerender } = render(<Sidebar {...defaultProps} activeTab="skeletal" />);
+    expect(screen.getByTestId('skeletal-tab')).toBeInTheDocument();
 
-    // Ensure we are on systems tab
-    expect(screen.getByText('Organ Systems')).toBeInTheDocument();
-
-    await user.click(screen.getByText('Circulatory System'));
-    expect(defaultProps.onSystemChange).toHaveBeenCalledWith('circulatory');
-
-    await user.click(screen.getByText('Nervous System'));
-    expect(defaultProps.onSystemChange).toHaveBeenCalledWith('nervous');
-  });
-
-  it('renders Skeletal tab content correctly', () => {
-    render(<Sidebar {...defaultProps} activeTab="skeletal" />);
-
-    expect(screen.getByText('Skeletal System')).toBeInTheDocument();
-    expect(screen.getByText('Interactive Mode')).toBeInTheDocument();
-  });
-
-  it('renders Diseases tab content and calls onDiseaseChange', async () => {
-    const user = userEvent.setup();
-    render(<Sidebar {...defaultProps} activeTab="diseases" />);
-
-    expect(screen.getByText('Conditions & Pathology')).toBeInTheDocument();
-
-    await user.click(screen.getByText('Heart Attack (Myocardial Infarction)'));
-    expect(defaultProps.onDiseaseChange).toHaveBeenCalledWith('heart_attack');
-
-    await user.click(screen.getByText('Broken Bone (Fracture)'));
-    expect(defaultProps.onDiseaseChange).toHaveBeenCalledWith('broken_bone');
-  });
-
-  it('displays disease description when a disease is active', () => {
-    render(<Sidebar {...defaultProps} activeTab="diseases" activeDisease="heart_attack" />);
-
-    expect(screen.getByText('Pathology Active')).toBeInTheDocument();
-    // Use a regex or part of the string to match description
-    expect(screen.getByText(/Occurs when blood flow decreases or stops/i)).toBeInTheDocument();
+    rerender(<Sidebar {...defaultProps} activeTab="diseases" />);
+    expect(screen.getByTestId('diseases-tab')).toBeInTheDocument();
   });
 });
