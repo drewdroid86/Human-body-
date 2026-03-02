@@ -5,6 +5,7 @@ import { OrbitControls, Environment, ContactShadows, Html, useCursor, Float } fr
 import { EffectComposer, Bloom, SSAO, Vignette, Noise, ToneMapping } from '@react-three/postprocessing';
 import { SystemType, DiseaseType, DISEASES } from '../data';
 import * as THREE from 'three';
+import { calculateMaterialProps } from './materialLogic';
 
 interface HumanBodyCanvasProps {
   activeSystem: SystemType;
