@@ -1,30 +1,30 @@
 import * as React from 'react';
-import { useState } from 'react';
-import { SystemType, DiseaseType, BODY_PARTS, DISEASES } from './data';
+import { useState, useCallback } from 'react';
+import { SystemType, DiseaseType, BODY_PARTS, DISEASES, TABS, TabType } from './data';
 import HumanBodyCanvas from './components/HumanBodyCanvas';
 import Sidebar from './components/Sidebar';
 import InfoPanel from './components/InfoPanel';
 import { Activity, Bone, Heart, Brain, Stethoscope, Wind, Coffee } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'systems' | 'skeletal' | 'diseases'>('systems');
+  const [activeTab, setActiveTab] = useState<TabType>(TABS.SYSTEMS);
   const [activeSystem, setActiveSystem] = useState<SystemType>('all');
   const [activeDisease, setActiveDisease] = useState<DiseaseType>('none');
   const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
 
-  const handleTabChange = (tab: 'systems' | 'skeletal' | 'diseases') => {
+  const handleTabChange = useCallback((tab: TabType) => {
     setActiveTab(tab);
     setSelectedPartId(null);
-    if (tab === 'skeletal') {
+    if (tab === TABS.SKELETAL) {
       setActiveSystem('skeletal');
       setActiveDisease('none');
-    } else if (tab === 'systems') {
+    } else if (tab === TABS.SYSTEMS) {
       setActiveSystem('all');
       setActiveDisease('none');
-    } else if (tab === 'diseases') {
+    } else if (tab === TABS.DISEASES) {
       setActiveSystem('all');
     }
-  };
+  }, []);
 
   return (
     <div className="flex h-screen w-full bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
