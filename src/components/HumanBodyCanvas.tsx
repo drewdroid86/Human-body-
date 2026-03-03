@@ -163,12 +163,8 @@ const BodyPart = React.forwardRef<THREE.Mesh, BodyPartProps>(({
 });
 BodyPart.displayName = 'BodyPart';
 
-// Stylized Human Body Component
-function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }: HumanBodyCanvasProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-
-function BodyPart({
+// BodyPart is already defined above, but we have a nested redeclaration
+function BodyPartInner({
   id,
   system,
   baseColor,
@@ -317,11 +313,11 @@ function BodyPart({
   };
 
   return (
-    <group ref={groupRef}>
+    <group>
       {/* --- SKELETAL SYSTEM --- */}
       <group visible={isVisible('skeletal') || activeSystem === 'all'}>
         {/* Skull */}
-        <BodyPart
+        <BodyPartInner
           id="skull"
           system="skeletal"
           baseColor="#f8fafc"
@@ -332,10 +328,10 @@ function BodyPart({
           onPartClick={handleClick}
         >
           <sphereGeometry args={[0.65, 64, 64]} />
-        </BodyPart>
+        </BodyPartInner>
 
         {/* Spine */}
-        <BodyPart
+        <BodyPartInner
           id="spine"
           system="skeletal"
           baseColor="#f1f5f9"
@@ -346,10 +342,10 @@ function BodyPart({
           onPartClick={handleClick}
         >
           <cylinderGeometry args={[0.18, 0.18, 2.8, 32]} />
-        </BodyPart>
+        </BodyPartInner>
 
         {/* Ribcage */}
-        <BodyPart
+        <BodyPartInner
           id="ribcage"
           system="skeletal"
           baseColor="#f1f5f9"
@@ -361,11 +357,11 @@ function BodyPart({
           materialOverrides={{ wireframe: true }}
         >
           <sphereGeometry args={[0.9, 32, 32]} />
-        </BodyPart>
+        </BodyPartInner>
 
         {/* Arms */}
         <group>
-          <BodyPart
+          <BodyPartInner
             id="humerus"
             system="skeletal"
             baseColor="#f1f5f9"
@@ -377,8 +373,8 @@ function BodyPart({
             onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.12, 0.12, 1.8, 16]} />
-          </BodyPart>
-          <BodyPart
+          </BodyPartInner>
+          <BodyPartInner
             id="humerus"
             system="skeletal"
             baseColor="#f1f5f9"
@@ -390,12 +386,12 @@ function BodyPart({
             onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.12, 0.12, 1.8, 16]} />
-          </BodyPart>
+          </BodyPartInner>
         </group>
 
         {/* Legs */}
         <group>
-          <BodyPart
+          <BodyPartInner
             id="femur"
             system="skeletal"
             baseColor="#f1f5f9"
@@ -412,8 +408,8 @@ function BodyPart({
                 <meshBasicMaterial color="#ff3333" />
               </mesh>
             )}
-          </BodyPart>
-          <BodyPart
+          </BodyPartInner>
+          <BodyPartInner
             id="femur"
             system="skeletal"
             baseColor="#f1f5f9"
@@ -424,7 +420,7 @@ function BodyPart({
             onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.18, 0.14, 2.4, 16]} />
-          </BodyPart>
+          </BodyPartInner>
         </group>
       </group>
 
@@ -432,7 +428,7 @@ function BodyPart({
       <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
         {/* --- CIRCULATORY SYSTEM --- */}
         <group visible={isVisible('circulatory') || activeSystem === 'all'}>
-          <BodyPart
+          <BodyPartInner
             ref={heartRef}
             id="heart"
             system="circulatory"
@@ -444,12 +440,12 @@ function BodyPart({
             onPartClick={handleClick}
           >
             <sphereGeometry args={[0.3, 64, 64]} />
-          </BodyPart>
+          </BodyPartInner>
         </group>
 
         {/* --- NERVOUS SYSTEM --- */}
         <group visible={isVisible('nervous') || activeSystem === 'all'}>
-          <BodyPart
+          <BodyPartInner
             id="brain"
             system="nervous"
             baseColor="#fbbf24"
@@ -461,12 +457,12 @@ function BodyPart({
             onPartClick={handleClick}
           >
             <sphereGeometry args={[0.6, 64, 64]} />
-          </BodyPart>
+          </BodyPartInner>
         </group>
 
         {/* --- DIGESTIVE SYSTEM --- */}
         <group visible={isVisible('digestive') || activeSystem === 'all'}>
-          <BodyPart
+          <BodyPartInner
             id="stomach"
             system="digestive"
             baseColor="#ea580c"
@@ -478,13 +474,13 @@ function BodyPart({
             onPartClick={handleClick}
           >
             <capsuleGeometry args={[0.25, 0.5, 32, 32]} />
-          </BodyPart>
+          </BodyPartInner>
         </group>
 
         {/* --- RESPIRATORY SYSTEM --- */}
         <group visible={isVisible('respiratory') || activeSystem === 'all'}>
           <group ref={lungsRef} position={[0, 5.0, 0.2]}>
-            <BodyPart
+            <BodyPartInner
               id="lungs"
               system="respiratory"
               baseColor="#db2777"
@@ -495,8 +491,8 @@ function BodyPart({
               onPartClick={handleClick}
             >
               <capsuleGeometry args={[0.3, 0.6, 32, 32]} />
-            </BodyPart>
-            <BodyPart
+            </BodyPartInner>
+            <BodyPartInner
               id="lungs"
               system="respiratory"
               baseColor="#db2777"
@@ -507,7 +503,7 @@ function BodyPart({
               onPartClick={handleClick}
             >
               <capsuleGeometry args={[0.3, 0.6, 32, 32]} />
-            </BodyPart>
+            </BodyPartInner>
           </group>
         </group>
       </Float>
@@ -528,4 +524,20 @@ function BodyPart({
       )}
     </group>
   );
+}
+
+// Stylized Human Body Component
+function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }: HumanBodyCanvasProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+
+  return <BodyPartInner
+    id="body"
+    system="skeletal"
+    baseColor="#ffffff"
+    activeSystem={activeSystem}
+    activeDisease={activeDisease}
+    selectedPartId={selectedPartId}
+    onSelectPart={onSelectPart}
+  />;
 }

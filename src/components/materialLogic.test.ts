@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
+import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
 import { calculateMaterialProps } from './materialLogic';
 
@@ -15,12 +14,12 @@ describe('calculateMaterialProps', () => {
       null
     );
 
-    assert.strictEqual(props.opacity, 1);
-    assert.strictEqual(props.transparent, false);
-    assert.strictEqual(props.roughness, 0.3);
-    assert.strictEqual(props.metalness, 0.1);
-    assert.strictEqual(props.transmission, 0);
-    assert.strictEqual(props.thickness, 0);
+    expect(props.opacity).toBe(1);
+    expect(props.transparent).toBe(false);
+    expect(props.roughness).toBe(0.3);
+    expect(props.metalness).toBe(0.1);
+    expect(props.transmission).toBe(0);
+    expect(props.thickness).toBe(0);
   });
 
   it('should return organic properties for non-skeletal system', () => {
@@ -34,9 +33,9 @@ describe('calculateMaterialProps', () => {
       null
     );
 
-    assert.strictEqual(props.roughness, 0.2);
-    assert.strictEqual(props.transmission, 0.1);
-    assert.strictEqual(props.thickness, 0.5);
+    expect(props.roughness).toBe(0.2);
+    expect(props.transmission).toBe(0.1);
+    expect(props.thickness).toBe(0.5);
   });
 
   it('should dim non-selected parts when a part is selected', () => {
@@ -50,8 +49,8 @@ describe('calculateMaterialProps', () => {
       null
     );
 
-    assert.strictEqual(props.opacity, 0.15);
-    assert.strictEqual(props.transparent, true);
+    expect(props.opacity).toBe(0.15);
+    expect(props.transparent).toBe(true);
   });
 
   it('should highlight hovered part', () => {
@@ -65,8 +64,8 @@ describe('calculateMaterialProps', () => {
       'skull' // hovered
     );
 
-    assert.strictEqual(props.emissive.getHexString(), '222222');
-    assert.strictEqual(props.metalness, 0.3);
+    expect(props.emissive.getHexString()).toBe('222222');
+    expect(props.metalness).toBe(0.3);
   });
 
   it('should highlight selected part', () => {
@@ -80,9 +79,9 @@ describe('calculateMaterialProps', () => {
       null
     );
 
-    assert.strictEqual(props.emissive.getHexString(), '333333');
-    assert.strictEqual(props.metalness, 0.4);
-    assert.strictEqual(props.roughness, 0.1);
+    expect(props.emissive.getHexString()).toBe('333333');
+    expect(props.metalness).toBe(0.4);
+    expect(props.roughness).toBe(0.1);
   });
 
   it('should apply disease effects for heart attack', () => {
@@ -96,9 +95,9 @@ describe('calculateMaterialProps', () => {
       null
     );
 
-    assert.strictEqual(props.color.getHexString(), '330000');
-    assert.strictEqual(props.emissive.getHexString(), '110000');
-    assert.strictEqual(props.roughness, 0.8);
+    expect(props.color.getHexString()).toBe('330000');
+    expect(props.emissive.getHexString()).toBe('110000');
+    expect(props.roughness).toBe(0.8);
   });
 
    it('should apply ghost effect for inactive systems', () => {
@@ -112,8 +111,8 @@ describe('calculateMaterialProps', () => {
       null
     );
 
-    assert.strictEqual(props.opacity, 0.05);
-    assert.strictEqual(props.transparent, true);
-    assert.strictEqual(props.color.getHexString(), '444444');
+    expect(props.opacity).toBe(0.05);
+    expect(props.transparent).toBe(true);
+    expect(props.color.getHexString()).toBe('444444');
   });
 });
