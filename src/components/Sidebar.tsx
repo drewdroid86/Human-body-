@@ -89,7 +89,7 @@ const TabButton = React.memo(({ id, active, onClick, icon, label }: { id: TabTyp
           : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
       }`}
     >
-      <Icon className="w-4 h-4" />
+      {icon}
       {label}
     </button>
   );
