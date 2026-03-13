@@ -125,11 +125,15 @@ interface BodyPartProps extends Omit<React.ComponentProps<'mesh'>, 'id'> {
   id: string;
   system: SystemType;
   baseColor: string;
-  getMaterialProps: (id: string, baseColor: string, system: SystemType) => any;
-  onPartPointerOver: (e: any, id: string) => void;
-  onPartPointerOut: (e: any) => void;
-  onPartClick: (e: any, id: string) => void;
+  getMaterialProps?: (id: string, baseColor: string, system: SystemType) => any;
+  onPartPointerOver?: (e: any, id: string) => void;
+  onPartPointerOut?: (e: any) => void;
+  onPartClick?: (e: any, id: string) => void;
   materialOverrides?: any;
+  activeSystem?: SystemType;
+  activeDisease?: DiseaseType;
+  selectedPartId?: string | null;
+  onSelectPart?: (id: string | null) => void;
 }
 
 const BodyPart = React.forwardRef<THREE.Mesh, BodyPartProps>(({
@@ -147,15 +151,15 @@ const BodyPart = React.forwardRef<THREE.Mesh, BodyPartProps>(({
   return (
     <mesh
       ref={ref}
-      onPointerOver={(e) => onPartPointerOver(e, id)}
+      onPointerOver={onPartPointerOver ? ((e) => onPartPointerOver(e, id)) : undefined}
       onPointerOut={onPartPointerOut}
-      onClick={(e) => onPartClick(e, id)}
+      onClick={onPartClick ? ((e) => onPartClick(e, id)) : undefined}
       castShadow
       {...meshProps}
     >
       {children}
       <meshPhysicalMaterial
-        {...getMaterialProps(id, baseColor, system)}
+        {...(getMaterialProps ? getMaterialProps(id, baseColor, system) : {})}
         {...materialOverrides}
       />
     </mesh>
@@ -168,10 +172,10 @@ function BodyPartInner({
   id,
   system,
   baseColor,
-  activeSystem,
-  activeDisease,
-  selectedPartId,
-  onSelectPart,
+  activeSystem = 'all',
+  activeDisease = 'none',
+  selectedPartId = null,
+  onSelectPart = () => {},
   children
 }: BodyPartProps) {
   const [hovered, setHovered] = useState(false);
@@ -528,9 +532,6 @@ function BodyPartInner({
 
 // Stylized Human Body Component
 function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }: HumanBodyCanvasProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-
   return <BodyPartInner
     id="body"
     system="skeletal"
