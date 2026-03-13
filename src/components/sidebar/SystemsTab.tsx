@@ -54,6 +54,7 @@ const SystemButton = React.memo(({ id, active, onClick, icon, label }: { id: Sys
   return (
     <button
       onClick={() => onClick(id)}
+      aria-current={active ? "true" : undefined}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
         active
           ? 'bg-zinc-800 text-white border border-zinc-700'
