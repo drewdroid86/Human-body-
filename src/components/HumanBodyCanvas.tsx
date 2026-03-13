@@ -132,7 +132,7 @@ interface BodyPartProps extends Omit<React.ComponentProps<'mesh'>, 'id'> {
   materialOverrides?: any;
 }
 
-const BodyPart = React.forwardRef<THREE.Mesh, BodyPartProps>(({
+const BodyPart = React.memo(React.forwardRef<THREE.Mesh, BodyPartProps>(({
   id,
   system,
   baseColor,
@@ -144,6 +144,8 @@ const BodyPart = React.forwardRef<THREE.Mesh, BodyPartProps>(({
   children,
   ...meshProps
 }, ref) => {
+  const materialProps = getMaterialProps(id, baseColor, system);
+
   return (
     <mesh
       ref={ref}
@@ -155,12 +157,12 @@ const BodyPart = React.forwardRef<THREE.Mesh, BodyPartProps>(({
     >
       {children}
       <meshPhysicalMaterial
-        {...getMaterialProps(id, baseColor, system)}
+        {...materialProps}
         {...materialOverrides}
       />
     </mesh>
   );
-});
+}));
 BodyPart.displayName = 'BodyPart';
 
 // BodyPart is already defined above, but we have a nested redeclaration
@@ -174,102 +176,36 @@ function BodyPartInner({
   onSelectPart,
   children
 }: BodyPartProps) {
-  const [hovered, setHovered] = useState(false);
-  useCursor(hovered);
+  const [hoveredPart, setHoveredPart] = useState<string | null>(null);
+  useCursor(!!hoveredPart);
 
-  const handlePointerOver = (e: any) => {
+  const handlePointerOver = React.useCallback((e: any, partId: string) => {
     e.stopPropagation();
-    setHovered(true);
-  };
+    setHoveredPart(partId);
+  }, []);
 
-  const handlePointerOut = (e: any) => {
+  const handlePointerOut = React.useCallback((e: any) => {
     e.stopPropagation();
-    setHovered(false);
-  };
+    setHoveredPart(null);
+  }, []);
 
-  const handleClick = (e: any) => {
+  const handleClick = React.useCallback((e: any, partId: string) => {
     e.stopPropagation();
-    onSelectPart(id === selectedPartId ? null : id);
-  };
+    onSelectPart(partId === selectedPartId ? null : partId);
+  }, [selectedPartId, onSelectPart]);
 
-  const getMaterialProps = (id: string, baseColor: string, system: SystemType) => {
-    const isSelected = selectedPartId === id;
-    const isHovered = hovered;
-    const isAffected = activeDisease !== 'none' && DISEASES[activeDisease].affectedParts.includes(id);
-    
-    let color = new THREE.Color(baseColor);
-    let emissive = new THREE.Color(0x000000);
-    let opacity = 1;
-    let transparent = false;
-    let roughness = 0.3;
-    let metalness = 0.1;
-    let transmission = 0;
-    let thickness = 0;
+  const getPartMaterialProps = React.useCallback((partId: string, partBaseColor: string, partSystem: SystemType) => {
+    return calculateMaterialProps(
+      partId,
+      partBaseColor,
+      partSystem,
+      activeSystem,
+      activeDisease,
+      selectedPartId,
+      hoveredPart
+    );
+  }, [activeSystem, activeDisease, selectedPartId, hoveredPart]);
 
-    // Organic look for organs
-    if (system !== 'skeletal') {
-      roughness = 0.2;
-      transmission = 0.1;
-      thickness = 0.5;
-    }
-
-    // Dim non-selected parts if something is selected
-    if (selectedPartId && !isSelected) {
-      opacity = 0.15;
-      transparent = true;
-    }
-
-    // Highlight hovered
-    if (isHovered && !isSelected) {
-      emissive.setHex(0x222222);
-      metalness = 0.3;
-    }
-
-    // Highlight selected
-    if (isSelected) {
-      emissive.setHex(0x333333);
-      color.lerp(new THREE.Color(0xffffff), 0.3);
-      metalness = 0.4;
-      roughness = 0.1;
-    }
-
-    // Disease effects
-    if (isAffected) {
-      if (activeDisease === 'heart_attack') {
-        color.setHex(0x330000);
-        emissive.setHex(0x110000);
-        roughness = 0.8;
-      } else if (activeDisease === 'broken_bone') {
-        color.setHex(0xffcccc);
-        emissive.setHex(0x330000);
-      } else if (activeDisease === 'common_cold') {
-        color.setHex(0x66aa66);
-        emissive.setHex(0x001100);
-        transmission = 0.3;
-      }
-    }
-
-    // Ghost effect for other systems when one is active
-    if (activeSystem !== 'all' && activeSystem !== system) {
-      opacity = 0.05;
-      transparent = true;
-      color.setHex(0x444444);
-    }
-
-    return { 
-      color, 
-      emissive, 
-      opacity, 
-      transparent, 
-      roughness, 
-      metalness, 
-      transmission, 
-      thickness,
-      envMapIntensity: 1.5,
-      clearcoat: system === 'skeletal' ? 0.5 : 0.2,
-      clearcoatRoughness: 0.1
-    };
-  };
 
   // Visibility logic
   const isVisible = (system: SystemType) => {
@@ -317,86 +253,86 @@ function BodyPartInner({
       {/* --- SKELETAL SYSTEM --- */}
       <group visible={isVisible('skeletal') || activeSystem === 'all'}>
         {/* Skull */}
-        <BodyPartInner
+        <BodyPart
           id="skull"
           system="skeletal"
           baseColor="#f8fafc"
           position={[0, 6.8, 0]}
-          getMaterialProps={getMaterialProps}
+          getMaterialProps={getPartMaterialProps}
           onPartPointerOver={handlePointerOver}
           onPartPointerOut={handlePointerOut}
           onPartClick={handleClick}
         >
           <sphereGeometry args={[0.65, 64, 64]} />
-        </BodyPartInner>
+        </BodyPart>
 
         {/* Spine */}
-        <BodyPartInner
+        <BodyPart
           id="spine"
           system="skeletal"
           baseColor="#f1f5f9"
           position={[0, 4.6, -0.25]}
-          getMaterialProps={getMaterialProps}
+          getMaterialProps={getPartMaterialProps}
           onPartPointerOver={handlePointerOver}
           onPartPointerOut={handlePointerOut}
           onPartClick={handleClick}
         >
           <cylinderGeometry args={[0.18, 0.18, 2.8, 32]} />
-        </BodyPartInner>
+        </BodyPart>
 
         {/* Ribcage */}
-        <BodyPartInner
+        <BodyPart
           id="ribcage"
           system="skeletal"
           baseColor="#f1f5f9"
           position={[0, 5.0, 0]}
-          getMaterialProps={getMaterialProps}
+          getMaterialProps={getPartMaterialProps}
           onPartPointerOver={handlePointerOver}
           onPartPointerOut={handlePointerOut}
           onPartClick={handleClick}
           materialOverrides={{ wireframe: true }}
         >
           <sphereGeometry args={[0.9, 32, 32]} />
-        </BodyPartInner>
+        </BodyPart>
 
         {/* Arms */}
         <group>
-          <BodyPartInner
+          <BodyPart
             id="humerus"
             system="skeletal"
             baseColor="#f1f5f9"
             position={[-1.3, 4.8, 0]}
             rotation={[0, 0, 0.3]}
-            getMaterialProps={getMaterialProps}
+            getMaterialProps={getPartMaterialProps}
             onPartPointerOver={handlePointerOver}
             onPartPointerOut={handlePointerOut}
             onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.12, 0.12, 1.8, 16]} />
-          </BodyPartInner>
-          <BodyPartInner
+          </BodyPart>
+          <BodyPart
             id="humerus"
             system="skeletal"
             baseColor="#f1f5f9"
             position={[1.3, 4.8, 0]}
             rotation={[0, 0, -0.3]}
-            getMaterialProps={getMaterialProps}
+            getMaterialProps={getPartMaterialProps}
             onPartPointerOver={handlePointerOver}
             onPartPointerOut={handlePointerOut}
             onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.12, 0.12, 1.8, 16]} />
-          </BodyPartInner>
+          </BodyPart>
         </group>
 
         {/* Legs */}
         <group>
-          <BodyPartInner
+          <BodyPart
             id="femur"
             system="skeletal"
             baseColor="#f1f5f9"
             position={[-0.6, 2.2, 0]}
-            getMaterialProps={getMaterialProps}
+            getMaterialProps={getPartMaterialProps}
             onPartPointerOver={handlePointerOver}
             onPartPointerOut={handlePointerOut}
             onPartClick={handleClick}
@@ -408,19 +344,19 @@ function BodyPartInner({
                 <meshBasicMaterial color="#ff3333" />
               </mesh>
             )}
-          </BodyPartInner>
-          <BodyPartInner
+          </BodyPart>
+          <BodyPart
             id="femur"
             system="skeletal"
             baseColor="#f1f5f9"
             position={[0.6, 2.2, 0]}
-            getMaterialProps={getMaterialProps}
+            getMaterialProps={getPartMaterialProps}
             onPartPointerOver={handlePointerOver}
             onPartPointerOut={handlePointerOut}
             onPartClick={handleClick}
           >
             <cylinderGeometry args={[0.18, 0.14, 2.4, 16]} />
-          </BodyPartInner>
+          </BodyPart>
         </group>
       </group>
 
@@ -428,82 +364,82 @@ function BodyPartInner({
       <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
         {/* --- CIRCULATORY SYSTEM --- */}
         <group visible={isVisible('circulatory') || activeSystem === 'all'}>
-          <BodyPartInner
+          <BodyPart
             ref={heartRef}
             id="heart"
             system="circulatory"
             baseColor="#dc2626"
             position={[0.25, 5.0, 0.3]}
-            getMaterialProps={getMaterialProps}
+            getMaterialProps={getPartMaterialProps}
             onPartPointerOver={handlePointerOver}
             onPartPointerOut={handlePointerOut}
             onPartClick={handleClick}
           >
             <sphereGeometry args={[0.3, 64, 64]} />
-          </BodyPartInner>
+          </BodyPart>
         </group>
 
         {/* --- NERVOUS SYSTEM --- */}
         <group visible={isVisible('nervous') || activeSystem === 'all'}>
-          <BodyPartInner
+          <BodyPart
             id="brain"
             system="nervous"
             baseColor="#fbbf24"
             position={[0, 6.8, 0.1]}
             scale={[0.85, 0.85, 0.85]}
-            getMaterialProps={getMaterialProps}
+            getMaterialProps={getPartMaterialProps}
             onPartPointerOver={handlePointerOver}
             onPartPointerOut={handlePointerOut}
             onPartClick={handleClick}
           >
             <sphereGeometry args={[0.6, 64, 64]} />
-          </BodyPartInner>
+          </BodyPart>
         </group>
 
         {/* --- DIGESTIVE SYSTEM --- */}
         <group visible={isVisible('digestive') || activeSystem === 'all'}>
-          <BodyPartInner
+          <BodyPart
             id="stomach"
             system="digestive"
             baseColor="#ea580c"
             position={[-0.25, 3.8, 0.3]}
             rotation={[0, 0, -0.6]}
-            getMaterialProps={getMaterialProps}
+            getMaterialProps={getPartMaterialProps}
             onPartPointerOver={handlePointerOver}
             onPartPointerOut={handlePointerOut}
             onPartClick={handleClick}
           >
             <capsuleGeometry args={[0.25, 0.5, 32, 32]} />
-          </BodyPartInner>
+          </BodyPart>
         </group>
 
         {/* --- RESPIRATORY SYSTEM --- */}
         <group visible={isVisible('respiratory') || activeSystem === 'all'}>
           <group ref={lungsRef} position={[0, 5.0, 0.2]}>
-            <BodyPartInner
+            <BodyPart
               id="lungs"
               system="respiratory"
               baseColor="#db2777"
               position={[-0.45, 0, 0]}
-              getMaterialProps={getMaterialProps}
+              getMaterialProps={getPartMaterialProps}
               onPartPointerOver={handlePointerOver}
               onPartPointerOut={handlePointerOut}
               onPartClick={handleClick}
             >
               <capsuleGeometry args={[0.3, 0.6, 32, 32]} />
-            </BodyPartInner>
-            <BodyPartInner
+            </BodyPart>
+            <BodyPart
               id="lungs"
               system="respiratory"
               baseColor="#db2777"
               position={[0.45, 0, 0]}
-              getMaterialProps={getMaterialProps}
+              getMaterialProps={getPartMaterialProps}
               onPartPointerOver={handlePointerOver}
               onPartPointerOut={handlePointerOut}
               onPartClick={handleClick}
             >
               <capsuleGeometry args={[0.3, 0.6, 32, 32]} />
-            </BodyPartInner>
+            </BodyPart>
           </group>
         </group>
       </Float>
@@ -528,9 +464,6 @@ function BodyPartInner({
 
 // Stylized Human Body Component
 function HumanBody({ activeSystem, activeDisease, selectedPartId, onSelectPart }: HumanBodyCanvasProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-
   return <BodyPartInner
     id="body"
     system="skeletal"
