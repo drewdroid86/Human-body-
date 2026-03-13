@@ -305,13 +305,6 @@ function BodyPartInner({
     }
   });
 
-  const commonProps = {
-    activeSystem,
-    activeDisease,
-    selectedPartId,
-    onSelectPart
-  };
-
   return (
     <group>
       {/* --- SKELETAL SYSTEM --- */}
