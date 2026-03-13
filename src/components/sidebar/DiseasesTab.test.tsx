@@ -33,4 +33,32 @@ describe('DiseasesTab', () => {
     expect(screen.getByText('Pathology Active')).toBeInTheDocument();
     expect(screen.getByText(/Occurs when blood flow decreases or stops/i)).toBeInTheDocument();
   });
+
+  it('renders all diseases from the DISEASES data as buttons', () => {
+    render(<DiseasesTab {...defaultProps} />);
+    expect(screen.getByText('Healthy State')).toBeInTheDocument();
+    expect(screen.getByText('Heart Attack (Myocardial Infarction)')).toBeInTheDocument();
+    expect(screen.getByText('Broken Bone (Fracture)')).toBeInTheDocument();
+    expect(screen.getByText('Common Cold')).toBeInTheDocument();
+  });
+
+  it('calls onDiseaseChange with "none" when Healthy State is clicked', async () => {
+    const user = userEvent.setup();
+    render(<DiseasesTab {...defaultProps} activeDisease="heart_attack" />);
+
+    await user.click(screen.getByText('Healthy State'));
+    expect(defaultProps.onDiseaseChange).toHaveBeenCalledWith('none');
+  });
+
+  it('renders active state marker for the selected disease', () => {
+    const { container } = render(<DiseasesTab {...defaultProps} activeDisease="heart_attack" />);
+
+    // Find the active button
+    const activeButton = screen.getByText('Heart Attack (Myocardial Infarction)').closest('button');
+    expect(activeButton).toHaveClass('bg-rose-500/20', 'text-rose-300');
+
+    // Find the inactive button
+    const inactiveButton = screen.getByText('Healthy State').closest('button');
+    expect(inactiveButton).toHaveClass('text-zinc-400');
+  });
 });
