@@ -39,7 +39,7 @@ describe('SkeletalTab', () => {
 
     // The Bone icon should be next to 'Interactive Mode'
     const interactiveModeHeading = screen.getByText('Interactive Mode');
-    const iconContainer = interactiveModeHeading.previousElementSibling;
+    const iconContainer = interactiveModeHeading.parentElement;
     expect(iconContainer?.querySelector('svg')).toBeInTheDocument();
   });
 });
