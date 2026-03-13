@@ -7,6 +7,8 @@ interface DiseasesTabProps {
   onDiseaseChange: (disease: DiseaseType) => void;
 }
 
+const DISEASE_VALUES = Object.values(DISEASES);
+
 export default function DiseasesTab({ activeDisease, onDiseaseChange }: DiseasesTabProps) {
   return (
     <div className="space-y-2">
@@ -17,7 +19,7 @@ export default function DiseasesTab({ activeDisease, onDiseaseChange }: Diseases
         onClick={onDiseaseChange}
         label="Healthy State"
       />
-      {Object.values(DISEASES).map(disease => (
+      {DISEASE_VALUES.map(disease => (
         <DiseaseButton
           key={disease.id}
           id={disease.id as DiseaseType}
