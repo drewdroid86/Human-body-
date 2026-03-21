@@ -1,11 +1,3 @@
-export const TABS = {
-  SYSTEMS: 'systems',
-  SKELETAL: 'skeletal',
-  DISEASES: 'diseases',
-} as const;
-
-export type TabType = typeof TABS[keyof typeof TABS];
-
 export type SystemType = 'all' | 'skeletal' | 'circulatory' | 'nervous' | 'digestive' | 'respiratory';
 export type DiseaseType = 'none' | 'heart_attack' | 'broken_bone' | 'common_cold';
 

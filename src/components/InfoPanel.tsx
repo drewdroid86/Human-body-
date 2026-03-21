@@ -50,7 +50,7 @@ export default function InfoPanel({ selectedPartId, activeDisease }: InfoPanelPr
       </AnimatePresence>
 
       <AnimatePresence>
-        {diseaseInfo && partInfo && diseaseInfo.affectedParts.includes(partInfo.id) && (
+        {diseaseInfo && partInfo && diseaseInfo.affectedParts?.includes(partInfo.id) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -64,7 +64,7 @@ export default function InfoPanel({ selectedPartId, activeDisease }: InfoPanelPr
               <h3 className="text-md font-semibold text-rose-100 leading-tight">Pathology Impact</h3>
             </div>
             <p className="text-sm text-rose-200/80 leading-relaxed">
-              The {partInfo.name.toLowerCase()} is directly affected by {diseaseInfo.name.toLowerCase()}.
+              The {partInfo.name?.toLowerCase()} is directly affected by {diseaseInfo.name?.toLowerCase()}.
             </p>
           </motion.div>
         )}
