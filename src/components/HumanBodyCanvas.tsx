@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, useGLTF, Center, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -13,32 +13,24 @@ const MODEL_URL = 'https://raw.githubusercontent.com/mrdoob/three.js/master/exam
 function AnatomyModel({ layers }: { layers: { skin: boolean; muscles: boolean; skeleton: boolean } }) {
   const { scene } = useGLTF(MODEL_URL);
 
-  // Material Initialization - Only runs when scene is loaded/changed
-  useEffect(() => {
-    if (scene) {
-      scene.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.material) {
-          // Apply PBR materials for realistic medical rendering
-          child.material.needsUpdate = true;
-          child.material.roughness = 0.35;
-          child.material.metalness = 0.1;
-
-          // Subsurface scattering approximation for skin
-          if (child.material instanceof THREE.MeshStandardMaterial || child.material instanceof THREE.MeshPhysicalMaterial) {
-             const mat = child.material as THREE.MeshPhysicalMaterial;
-             mat.thickness = 1.5;
-             mat.transmission = 0.2;
-          }
-        }
-      });
-    }
-  }, [scene]);
-
-  // Visibility Toggling - Runs when layers or scene change
   useEffect(() => {
     if (scene) {
       scene.traverse((child) => {
         if (child instanceof THREE.Mesh) {
+          // Apply PBR materials for realistic medical rendering
+          if (child.material) {
+            child.material.needsUpdate = true;
+            child.material.roughness = 0.35;
+            child.material.metalness = 0.1;
+            
+            // Subsurface scattering approximation for skin
+            if (child.material instanceof THREE.MeshStandardMaterial || child.material instanceof THREE.MeshPhysicalMaterial) {
+               const mat = child.material as THREE.MeshPhysicalMaterial;
+               mat.thickness = 1.5;
+               mat.transmission = 0.2;
+            }
+          }
+
           // Layer visibility logic based on node names
           // This fulfills the requirement to toggle layers of a separated model
           const name = child.name.toLowerCase();
