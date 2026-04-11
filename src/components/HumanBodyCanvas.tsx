@@ -193,82 +193,15 @@ function BodyPartInner({
   };
 
   const getMaterialProps = (id: string, baseColor: string, system: SystemType) => {
-    const isSelected = selectedPartId === id;
-    const isHovered = hovered;
-    const isAffected = activeDisease !== 'none' && DISEASES[activeDisease].affectedParts.includes(id);
-    
-    let color = new THREE.Color(baseColor);
-    let emissive = new THREE.Color(0x000000);
-    let opacity = 1;
-    let transparent = false;
-    let roughness = 0.3;
-    let metalness = 0.1;
-    let transmission = 0;
-    let thickness = 0;
-
-    // Organic look for organs
-    if (system !== 'skeletal') {
-      roughness = 0.2;
-      transmission = 0.1;
-      thickness = 0.5;
-    }
-
-    // Dim non-selected parts if something is selected
-    if (selectedPartId && !isSelected) {
-      opacity = 0.15;
-      transparent = true;
-    }
-
-    // Highlight hovered
-    if (isHovered && !isSelected) {
-      emissive.setHex(0x222222);
-      metalness = 0.3;
-    }
-
-    // Highlight selected
-    if (isSelected) {
-      emissive.setHex(0x333333);
-      color.lerp(new THREE.Color(0xffffff), 0.3);
-      metalness = 0.4;
-      roughness = 0.1;
-    }
-
-    // Disease effects
-    if (isAffected) {
-      if (activeDisease === 'heart_attack') {
-        color.setHex(0x330000);
-        emissive.setHex(0x110000);
-        roughness = 0.8;
-      } else if (activeDisease === 'broken_bone') {
-        color.setHex(0xffcccc);
-        emissive.setHex(0x330000);
-      } else if (activeDisease === 'common_cold') {
-        color.setHex(0x66aa66);
-        emissive.setHex(0x001100);
-        transmission = 0.3;
-      }
-    }
-
-    // Ghost effect for other systems when one is active
-    if (activeSystem !== 'all' && activeSystem !== system) {
-      opacity = 0.05;
-      transparent = true;
-      color.setHex(0x444444);
-    }
-
-    return { 
-      color, 
-      emissive, 
-      opacity, 
-      transparent, 
-      roughness, 
-      metalness, 
-      transmission, 
-      thickness,
-      envMapIntensity: 1.5,
-      clearcoat: system === 'skeletal' ? 0.5 : 0.2,
-      clearcoatRoughness: 0.1
-    };
+    return calculateMaterialProps(
+      id,
+      baseColor,
+      system,
+      activeSystem,
+      activeDisease,
+      selectedPartId,
+      hovered ? id : null // hovered state is local boolean in BodyPartInner
+    );
   };
 
   // Visibility logic
