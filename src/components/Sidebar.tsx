@@ -13,6 +13,8 @@ interface SidebarProps {
   onToggleShell: () => void;
 }
 
+const DISEASE_LIST = Object.values(DISEASES);
+
 export default function Sidebar({
   activeTab,
   onTabChange,
@@ -129,7 +131,7 @@ export default function Sidebar({
               onClick={() => onDiseaseChange('none')}
               label="Healthy State"
             />
-            {Object.values(DISEASES).map(disease => (
+            {DISEASE_LIST.map(disease => (
               <DiseaseButton 
                 key={disease.id}
                 active={activeDisease === disease.id as DiseaseType} 
