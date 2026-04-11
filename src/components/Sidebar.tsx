@@ -2,6 +2,8 @@ import * as React from 'react';
 import { SystemType, DiseaseType, DISEASES } from '../data';
 import { Activity, Bone, Heart, Brain, Stethoscope, Wind, Coffee, ShieldAlert } from 'lucide-react';
 
+const DISEASE_LIST = Object.values(DISEASES);
+
 interface SidebarProps {
   activeTab: 'systems' | 'skeletal' | 'diseases';
   onTabChange: (tab: 'systems' | 'skeletal' | 'diseases') => void;
