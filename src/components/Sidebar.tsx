@@ -2,6 +2,8 @@ import * as React from 'react';
 import { SystemType, DiseaseType, DISEASES } from '../data';
 import { Activity, Bone, Heart, Brain, Stethoscope, Wind, Coffee, ShieldAlert } from 'lucide-react';
 
+const DISEASE_LIST = Object.values(DISEASES);
+
 interface SidebarProps {
   activeTab: 'systems' | 'skeletal' | 'diseases';
   onTabChange: (tab: 'systems' | 'skeletal' | 'diseases') => void;
@@ -129,7 +131,7 @@ export default function Sidebar({
               onClick={() => onDiseaseChange('none')}
               label="Healthy State"
             />
-            {Object.values(DISEASES).map(disease => (
+            {DISEASE_LIST.map(disease => (
               <DiseaseButton 
                 key={disease.id}
                 active={activeDisease === disease.id as DiseaseType} 
