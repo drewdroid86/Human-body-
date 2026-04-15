@@ -1,23 +1,56 @@
-import React, { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF } from '@react-three/drei';
-
-function Model() {
-  const { scene } = useGLTF('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb');
-  return <primitive object={scene} />;
-}
+import React, { useState } from 'react';
+import { SystemType, DiseaseType, DISEASES } from './data';
+import HumanBodyCanvas from './components/HumanBodyCanvas';
+import Sidebar from './components/Sidebar';
+import InfoPanel from './components/InfoPanel';
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<'systems' | 'skeletal' | 'diseases'>('systems');
+  const [activeSystem, setActiveSystem] = useState<SystemType>('all');
+  const [activeDisease, setActiveDisease] = useState<DiseaseType>('none');
+  const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
+
+  const handleTabChange = (tab: 'systems' | 'skeletal' | 'diseases') => {
+    setActiveTab(tab);
+    setSelectedPartId(null);
+    if (tab === 'skeletal') {
+      setActiveSystem('skeletal');
+      setActiveDisease('none');
+    } else if (tab === 'systems') {
+      setActiveSystem('all');
+      setActiveDisease('none');
+    } else if (tab === 'diseases') {
+      setActiveSystem('all');
+    }
+  };
+
   return (
-    <div style={{ width: '100vw', height: '100vh', backgroundColor: 'black', margin: 0, padding: 0, overflow: 'hidden' }}>
-      <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 10]} intensity={1} />
-        <Suspense fallback={null}>
-          <Model />
-        </Suspense>
-        <OrbitControls />
-      </Canvas>
+    <div className="flex h-screen w-full bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
+      {/* Sidebar */}
+      <Sidebar 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange}
+        activeSystem={activeSystem}
+        onSystemChange={setActiveSystem}
+        activeDisease={activeDisease}
+        onDiseaseChange={setActiveDisease}
+      />
+
+      {/* Main 3D View */}
+      <div className="flex-1 relative">
+        <HumanBodyCanvas 
+          activeSystem={activeSystem} 
+          activeDisease={activeDisease}
+          selectedPartId={selectedPartId}
+          onSelectPart={setSelectedPartId}
+        />
+        
+        {/* Info Overlay */}
+        <InfoPanel 
+          selectedPartId={selectedPartId} 
+          activeDisease={activeDisease}
+        />
+      </div>
     </div>
   );
 }
