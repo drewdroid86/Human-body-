@@ -15,8 +15,6 @@ interface SidebarProps {
   onToggleShell: () => void;
 }
 
-const DISEASE_LIST = Object.values(DISEASES);
-
 export default function Sidebar({
   activeTab,
   onTabChange,
