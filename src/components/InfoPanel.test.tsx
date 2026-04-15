@@ -4,8 +4,8 @@ import '@testing-library/jest-dom';
 import InfoPanel from './InfoPanel';
 import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('../data', async () => {
-  const actual = await vi.importActual('../data');
+vi.mock('../models/anatomy', async () => {
+  const actual = await vi.importActual('../models/anatomy');
   return {
     ...actual as any,
     BODY_PARTS: {

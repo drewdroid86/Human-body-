@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { DISEASES } from '../data';
-import type { SystemType, DiseaseType } from '../data';
+import { DISEASES } from '../models/anatomy';
+import type { SystemType, DiseaseType } from '../models/anatomy';
 
 // Performance optimization: cache colors and reuse instances
 const COLOR_CACHE: Record<string, THREE.Color> = {};

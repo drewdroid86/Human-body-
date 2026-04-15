@@ -1,5 +1,5 @@
 import React from 'react';
-import { BODY_PARTS, DISEASES, DiseaseType } from '../data';
+import { BODY_PARTS, DISEASES, DiseaseType } from '../models/anatomy';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info, Activity, AlertCircle } from 'lucide-react';
 
