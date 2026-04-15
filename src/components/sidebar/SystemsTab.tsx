@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Activity, Heart, Brain, Coffee, Wind } from 'lucide-react';
-import { SystemType } from '../../data';
+import { SystemType } from '../../models/anatomy';
 
 interface SystemsTabProps {
   activeSystem: SystemType;
