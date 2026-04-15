@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import Sidebar from './Sidebar';
-import { DISEASES } from '../data';
+import { DISEASES } from '../models/anatomy';
 
 describe('Sidebar', () => {
   const defaultProps = {

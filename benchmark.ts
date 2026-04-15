@@ -1,4 +1,4 @@
-import { DISEASES } from './src/data';
+import { DISEASES } from './src/models/anatomy';
 
 const iterations = 1000000;
 
