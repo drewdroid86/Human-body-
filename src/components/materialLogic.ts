@@ -1,6 +1,24 @@
 import * as THREE from 'three';
-import { DISEASES } from '../data';
-import type { SystemType, DiseaseType } from '../data';
+import { DISEASES } from '../models/anatomy';
+import type { SystemType, DiseaseType } from '../models/anatomy';
+
+// Performance optimization: cache colors and reuse instances
+const COLOR_CACHE: Record<string, THREE.Color> = {};
+const COLOR_BLACK = new THREE.Color(0x000000);
+const COLOR_WHITE = new THREE.Color(0xffffff);
+const COLOR_HOVER = new THREE.Color(0x222222);
+const COLOR_SELECT = new THREE.Color(0x333333);
+const COLOR_GHOST = new THREE.Color(0x444444);
+
+// Disease specific colors
+const COLOR_HEART_ATTACK = new THREE.Color(0x330000);
+const COLOR_HEART_ATTACK_EMISSIVE = new THREE.Color(0x110000);
+const COLOR_BROKEN_BONE = new THREE.Color(0xffcccc);
+const COLOR_BROKEN_BONE_EMISSIVE = new THREE.Color(0x330000);
+const COLOR_COMMON_COLD = new THREE.Color(0x66aa66);
+const COLOR_COMMON_COLD_EMISSIVE = new THREE.Color(0x001100);
+
+const RESULT_CACHE = new Map<string, MaterialResult>();
 
 export interface MaterialResult {
   color: THREE.Color;
@@ -27,41 +45,14 @@ interface MaterialState {
   thickness: number;
 }
 
-/**
- * Performance Optimization:
- * 1. Color cache to avoid repeated string parsing and object creation.
- * 2. Pre-allocated constants for fixed colors in the hot path.
- * 3. Result memoization to avoid redundant calculations and allocations.
- */
-
-const COLOR_CACHE: Record<string, THREE.Color> = {};
-const getCachedColor = (colorStr: string) => {
-  if (!COLOR_CACHE[colorStr]) {
-    COLOR_CACHE[colorStr] = new THREE.Color(colorStr);
-  }
-  return COLOR_CACHE[colorStr];
-};
-
-const COLOR_BLACK = new THREE.Color(0x000000);
-const COLOR_WHITE = new THREE.Color(0xffffff);
-const COLOR_HOVER = new THREE.Color(0x222222);
-const COLOR_SELECTED = new THREE.Color(0x333333);
-const COLOR_HEART_ATTACK = new THREE.Color(0x330000);
-const COLOR_HEART_ATTACK_EMISSIVE = new THREE.Color(0x110000);
-const COLOR_BROKEN_BONE = new THREE.Color(0xffcccc);
-const COLOR_COLD = new THREE.Color(0x66aa66);
-const COLOR_COLD_EMISSIVE = new THREE.Color(0x001100);
-const COLOR_GHOST = new THREE.Color(0x444444);
-
-// Reusable scratchpad colors to avoid allocation in modification functions
-const _tempColor = new THREE.Color();
-
-const RESULT_CACHE = new Map<string, MaterialResult>();
-
 function getInitialState(baseColor: string, system: SystemType): MaterialState {
-  // Clone from cache to allow safe mutation in apply functions
-  const color = getCachedColor(baseColor).clone();
-  const emissive = COLOR_BLACK.clone();
+  if (!COLOR_CACHE[baseColor]) {
+    COLOR_CACHE[baseColor] = new THREE.Color(baseColor);
+  }
+
+  // Return clones so callers can safely mutate them (lerp, etc.)
+  let color = COLOR_CACHE[baseColor].clone();
+  let emissive = COLOR_BLACK.clone();
   let opacity = 1;
   let transparent = false;
   let roughness = 0.3;
@@ -104,7 +95,7 @@ function applyHighlighting(state: MaterialState, isHovered: boolean, isSelected:
 
   // Highlight selected
   if (isSelected) {
-    state.emissive.copy(COLOR_SELECTED);
+    state.emissive.copy(COLOR_SELECT);
     state.color.lerp(COLOR_WHITE, 0.3);
     state.metalness = 0.4;
     state.roughness = 0.1;
@@ -119,10 +110,10 @@ function applyDiseaseEffects(state: MaterialState, activeDisease: DiseaseType, i
       state.roughness = 0.8;
     } else if (activeDisease === 'broken_bone') {
       state.color.copy(COLOR_BROKEN_BONE);
-      state.emissive.copy(COLOR_HEART_ATTACK); // Original hex match: 0x330000
+      state.emissive.copy(COLOR_BROKEN_BONE_EMISSIVE);
     } else if (activeDisease === 'common_cold') {
-      state.color.copy(COLOR_COLD);
-      state.emissive.copy(COLOR_COLD_EMISSIVE);
+      state.color.copy(COLOR_COMMON_COLD);
+      state.emissive.copy(COLOR_COMMON_COLD_EMISSIVE);
       state.transmission = 0.3;
     }
   }
@@ -145,7 +136,6 @@ export function calculateMaterialProps(
   selectedPartId: string | null,
   hovered: string | null
 ): MaterialResult {
-  // Cache check - keys are stable for given state
   const cacheKey = `${id}-${baseColor}-${system}-${activeSystem}-${activeDisease}-${selectedPartId}-${hovered}`;
   const cached = RESULT_CACHE.get(cacheKey);
   if (cached) return cached;

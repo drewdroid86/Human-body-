@@ -1,5 +1,5 @@
 import React from 'react';
-import { BODY_PARTS, DISEASES, DiseaseType } from '../data';
+import { BODY_PARTS, DISEASES, DiseaseType } from '../models/anatomy';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info, Activity, AlertCircle } from 'lucide-react';
 
@@ -33,13 +33,13 @@ export default function InfoPanel({ selectedPartId, activeDisease }: InfoPanelPr
                 </span>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Description</h4>
                 <p className="text-sm text-zinc-300 leading-relaxed">{partInfo.description}</p>
               </div>
-              
+
               <div>
                 <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Function</h4>
                 <p className="text-sm text-zinc-300 leading-relaxed">{partInfo.function}</p>
