@@ -55,16 +55,24 @@ function getInitialState(baseColor: string, system: SystemType): MaterialState {
   let emissive = COLOR_BLACK.clone();
   let opacity = 1;
   let transparent = false;
-  let roughness = 0.3;
-  let metalness = 0.1;
+  let roughness = 0.4;
+  let metalness = 0.05;
   let transmission = 0;
   let thickness = 0;
 
-  // Organic look for organs
-  if (system !== 'skeletal') {
+  // More realistic material properties based on system
+  if (system === 'skeletal') {
+    // Bone-like material - slightly glossy, not metallic
+    roughness = 0.3;
+    metalness = 0.02;
+    transmission = 0.05;
+    thickness = 0.2;
+  } else {
+    // Organic tissue - more translucent, less metallic
     roughness = 0.2;
-    transmission = 0.1;
-    thickness = 0.5;
+    metalness = 0.01;
+    transmission = 0.15;
+    thickness = 0.8;
   }
 
   return {
@@ -153,9 +161,9 @@ export function calculateMaterialProps(
 
   const result: MaterialResult = {
     ...state,
-    envMapIntensity: 1.5,
-    clearcoat: system === 'skeletal' ? 0.5 : 0.2,
-    clearcoatRoughness: 0.1
+    envMapIntensity: 2.0,
+    clearcoat: system === 'skeletal' ? 0.3 : 0.1,
+    clearcoatRoughness: 0.05
   };
 
   RESULT_CACHE.set(cacheKey, result);

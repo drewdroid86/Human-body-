@@ -35,19 +35,26 @@ export default function HumanBodyCanvas({
       >
         <color attach="background" args={['#050505']} />
 
-        <ambientLight intensity={0.2} />
+        <ambientLight intensity={0.3} />
         <spotLight
           position={[10, 15, 10]}
-          angle={0.3}
-          penumbra={1}
-          intensity={2}
+          angle={0.4}
+          penumbra={0.8}
+          intensity={1.8}
           castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-camera-near={1}
+          shadow-camera-far={50}
+          shadow-camera-left={-10}
+          shadow-camera-right={10}
+          shadow-camera-top={10}
+          shadow-camera-bottom={-10}
         />
-        <pointLight position={[-10, 5, -10]} intensity={1.5} color="#4444ff" />
-        <pointLight position={[10, -5, 5]} intensity={1} color="#ff4444" />
-        <directionalLight position={[0, 10, 0]} intensity={0.5} />
+        <pointLight position={[-10, 5, -10]} intensity={1.2} color="#4a90e2" />
+        <pointLight position={[10, -5, 5]} intensity={0.8} color="#e24a4a" />
+        <directionalLight position={[0, 10, 0]} intensity={0.6} color="#ffffff" />
+        <directionalLight position={[0, -10, 0]} intensity={0.3} color="#87ceeb" />
 
         <Suspense fallback={
           <Html center>
@@ -67,40 +74,41 @@ export default function HumanBodyCanvas({
             />
             <ContactShadows
               position={[0, -0.01, 0]}
-              opacity={0.6}
-              scale={12}
-              blur={2.5}
-              far={4}
+              opacity={0.7}
+              scale={14}
+              blur={3}
+              far={6}
               color="#000000"
-              resolution={256}
+              resolution={512}
               frames={1}
             />
           </group>
 
           <Environment preset="night" />
 
-          <EffectComposer enableNormalPass multisampling={0}>
+          <EffectComposer enableNormalPass multisampling={4}>
             <SSAO
-              intensity={1.5}
-              radius={0.4}
-              luminanceInfluence={0.5}
+              intensity={1.2}
+              radius={0.5}
+              luminanceInfluence={0.6}
               color={new THREE.Color(0x000000)}
-              worldDistanceThreshold={1.0}
-              worldDistanceFalloff={0.5}
-              worldProximityThreshold={0.5}
-              worldProximityFalloff={0.2}
-              resolutionScale={0.5}
-              samples={16}
+              worldDistanceThreshold={1.5}
+              worldDistanceFalloff={0.8}
+              worldProximityThreshold={0.3}
+              worldProximityFalloff={0.5}
+              resolutionScale={0.8}
+              samples={21}
             />
             <Bloom
-              intensity={0.5}
-              luminanceThreshold={0.8}
-              luminanceSmoothing={0.9}
+              intensity={0.4}
+              luminanceThreshold={0.9}
+              luminanceSmoothing={0.8}
               mipmapBlur
+              kernelSize={3}
             />
-            <Noise opacity={0.02} />
-            <Vignette eskil={false} offset={0.1} darkness={1.1} />
-            <ToneMapping mode={THREE.ACESFilmicToneMapping} />
+            <Noise opacity={0.015} />
+            <Vignette eskil={false} offset={0.15} darkness={1.2} />
+            <ToneMapping mode={THREE.ACESFilmicToneMapping} resolution={256} />
           </EffectComposer>
         </Suspense>
 
@@ -242,6 +250,11 @@ function AnatomyModel({
           getMaterialProps={getPartMaterialProps} onPartPointerOver={handlePointerOver} onPartPointerOut={handlePointerOut} onPartClick={handleClick}
         >
           <sphereGeometry args={[0.65, 64, 64]} />
+          {/* Add more detailed skull features */}
+          <mesh position={[0, 0.1, 0.4]}>
+            <sphereGeometry args={[0.25, 32, 32]} />
+            <meshPhysicalMaterial color="#f1f5f9" roughness={0.8} metalness={0.1} />
+          </mesh>
         </BodyPart>
 
         <BodyPart
@@ -251,13 +264,41 @@ function AnatomyModel({
           <cylinderGeometry args={[0.18, 0.18, 2.8, 32]} />
         </BodyPart>
 
+        {/* Individual vertebrae for more detail */}
+        {Array.from({ length: 7 }, (_, i) => (
+          <BodyPart
+            key={`vertebra-${i}`}
+            id="spine" system="skeletal" baseColor="#e2e8f0" position={[0, 3.2 + i * 0.35, -0.25]}
+            getMaterialProps={getPartMaterialProps} onPartPointerOver={handlePointerOver} onPartPointerOut={handlePointerOut} onPartClick={handleClick}
+          >
+            <cylinderGeometry args={[0.22, 0.22, 0.15, 16]} />
+          </BodyPart>
+        ))}
+
         <BodyPart
           id="ribcage" system="skeletal" baseColor="#f1f5f9" position={[0, 5.0, 0]}
           getMaterialProps={getPartMaterialProps} onPartPointerOver={handlePointerOver} onPartPointerOut={handlePointerOut} onPartClick={handleClick}
-          materialOverrides={{ wireframe: true }}
         >
           <sphereGeometry args={[0.9, 32, 32]} />
         </BodyPart>
+
+        {/* Individual ribs for more detail */}
+        {Array.from({ length: 12 }, (_, i) => {
+          const angle = (i * Math.PI) / 6;
+          const radius = 0.8;
+          const x = Math.cos(angle) * radius;
+          const z = Math.sin(angle) * radius;
+          return (
+            <BodyPart
+              key={`rib-${i}`}
+              id="ribcage" system="skeletal" baseColor="#e2e8f0" position={[x, 5.0 + Math.sin(angle) * 0.2, z]}
+              rotation={[0, angle, Math.PI / 6]}
+              getMaterialProps={getPartMaterialProps} onPartPointerOver={handlePointerOver} onPartPointerOut={handlePointerOut} onPartClick={handleClick}
+            >
+              <cylinderGeometry args={[0.03, 0.03, 0.6, 8]} />
+            </BodyPart>
+          );
+        })}
 
         <group>
           <BodyPart
@@ -353,10 +394,23 @@ function AnatomyModel({
           <meshPhysicalMaterial
             color="#ffffff"
             transparent
-            opacity={0.05}
+            opacity={0.08}
             depthWrite={false}
-            roughness={0}
-            metalness={0.5}
+            roughness={0.1}
+            metalness={0.8}
+            transmission={0.3}
+            thickness={0.5}
+            envMapIntensity={2.0}
+          />
+        </mesh>
+        {/* Add subtle inner glow */}
+        <mesh position={[0, 4.2, 0]}>
+          <capsuleGeometry args={[1.25, 3.6, 32, 32]} />
+          <meshBasicMaterial
+            color="#ffffff"
+            transparent
+            opacity={0.02}
+            side={THREE.BackSide}
           />
         </mesh>
       </group>
