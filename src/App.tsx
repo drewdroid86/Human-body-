@@ -22,12 +22,14 @@ export default function App() {
     } else if (tab === 'systems') {
       setActiveSystem('all');
       setActiveDisease('none');
+    } else if (tab === 'diseases') {
+      setActiveSystem('all');
     }
   };
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-black text-slate-200">
-      <Sidebar 
+      <Sidebar
         activeTab={activeTab}
         onTabChange={handleTabChange}
         activeSystem={activeSystem}
@@ -37,19 +39,19 @@ export default function App() {
         showShell={showShell}
         onToggleShell={() => setShowShell(!showShell)}
       />
-      
+
       <main className="flex-1 relative">
-        <HumanBodyCanvas 
+        <HumanBodyCanvas
           activeSystem={activeSystem}
           activeDisease={activeDisease}
           selectedPartId={selectedPartId}
           onSelectPart={setSelectedPartId}
           showShell={showShell}
         />
-        
+
         {/* Info Overlay */}
-        <InfoPanel 
-          selectedPartId={selectedPartId} 
+        <InfoPanel
+          selectedPartId={selectedPartId}
           activeDisease={activeDisease}
         />
 

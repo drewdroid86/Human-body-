@@ -18,6 +18,8 @@ const COLOR_BROKEN_BONE_EMISSIVE = new THREE.Color(0x330000);
 const COLOR_COMMON_COLD = new THREE.Color(0x66aa66);
 const COLOR_COMMON_COLD_EMISSIVE = new THREE.Color(0x001100);
 
+const RESULT_CACHE = new Map<string, MaterialResult>();
+
 export interface MaterialResult {
   color: THREE.Color;
   emissive: THREE.Color;
@@ -134,6 +136,10 @@ export function calculateMaterialProps(
   selectedPartId: string | null,
   hovered: string | null
 ): MaterialResult {
+  const cacheKey = `${id}-${baseColor}-${system}-${activeSystem}-${activeDisease}-${selectedPartId}-${hovered}`;
+  const cached = RESULT_CACHE.get(cacheKey);
+  if (cached) return cached;
+
   const isSelected = selectedPartId === id;
   const isHovered = hovered === id;
   const isAffected = activeDisease !== 'none' && DISEASES[activeDisease].affectedParts.includes(id);
@@ -145,10 +151,13 @@ export function calculateMaterialProps(
   applyDiseaseEffects(state, activeDisease, isAffected);
   applySystemGhosting(state, activeSystem, system);
 
-  return {
+  const result: MaterialResult = {
     ...state,
     envMapIntensity: 1.5,
     clearcoat: system === 'skeletal' ? 0.5 : 0.2,
     clearcoatRoughness: 0.1
   };
+
+  RESULT_CACHE.set(cacheKey, result);
+  return result;
 }

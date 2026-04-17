@@ -24,31 +24,31 @@ export default function HumanBodyCanvas({
 }: HumanBodyCanvasProps) {
   return (
     <div className="w-full h-full bg-zinc-950">
-      <Canvas 
-        shadows 
+      <Canvas
+        shadows
         camera={{ position: [0, 2, 10], fov: 40 }}
-        gl={{ 
-          antialias: true, 
+        gl={{
+          antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
           outputColorSpace: THREE.SRGBColorSpace
         }}
       >
         <color attach="background" args={['#050505']} />
-        
+
         <ambientLight intensity={0.2} />
-        <spotLight 
-          position={[10, 15, 10]} 
-          angle={0.3} 
-          penumbra={1} 
-          intensity={2} 
-          castShadow 
+        <spotLight
+          position={[10, 15, 10]}
+          angle={0.3}
+          penumbra={1}
+          intensity={2}
+          castShadow
           shadow-mapSize-width={1024}
           shadow-mapSize-height={1024}
         />
         <pointLight position={[-10, 5, -10]} intensity={1.5} color="#4444ff" />
         <pointLight position={[10, -5, 5]} intensity={1} color="#ff4444" />
         <directionalLight position={[0, 10, 0]} intensity={0.5} />
-        
+
         <Suspense fallback={
           <Html center>
             <div className="flex flex-col items-center gap-4">
@@ -58,29 +58,29 @@ export default function HumanBodyCanvas({
           </Html>
         }>
           <group position={[0, -3.5, 0]}>
-            <AnatomyModel 
-              activeSystem={activeSystem} 
+            <AnatomyModel
+              activeSystem={activeSystem}
               activeDisease={activeDisease}
               selectedPartId={selectedPartId}
               onSelectPart={onSelectPart}
               showShell={showShell}
             />
-            <ContactShadows 
-              position={[0, -0.01, 0]} 
-              opacity={0.6} 
-              scale={12} 
-              blur={2.5} 
-              far={4} 
+            <ContactShadows
+              position={[0, -0.01, 0]}
+              opacity={0.6}
+              scale={12}
+              blur={2.5}
+              far={4}
               color="#000000"
               resolution={256}
               frames={1}
             />
           </group>
-          
+
           <Environment preset="night" />
-          
+
           <EffectComposer enableNormalPass multisampling={0}>
-            <SSAO 
+            <SSAO
               intensity={1.5}
               radius={0.4}
               luminanceInfluence={0.5}
@@ -92,22 +92,22 @@ export default function HumanBodyCanvas({
               resolutionScale={0.5}
               samples={16}
             />
-            <Bloom 
-              intensity={0.5} 
-              luminanceThreshold={0.8} 
-              luminanceSmoothing={0.9} 
-              mipmapBlur 
+            <Bloom
+              intensity={0.5}
+              luminanceThreshold={0.8}
+              luminanceSmoothing={0.9}
+              mipmapBlur
             />
             <Noise opacity={0.02} />
             <Vignette eskil={false} offset={0.1} darkness={1.1} />
             <ToneMapping mode={THREE.ACESFilmicToneMapping} />
           </EffectComposer>
         </Suspense>
-        
-        <OrbitControls 
-          enablePan={false} 
-          enableZoom={true} 
-          minDistance={4} 
+
+        <OrbitControls
+          enablePan={false}
+          enableZoom={true}
+          minDistance={4}
           maxDistance={12}
           target={[0, 3.5, 0]}
           makeDefault
@@ -163,19 +163,6 @@ const BodyPart = React.memo(React.forwardRef<THREE.Mesh, BodyPartProps>(({
 }));
 BodyPart.displayName = 'BodyPart';
 
-/**
- * AnatomyModel - A stylized 3D representation of the human body.
- * 
- * DESIGN PHILOSOPHY:
- * Instead of hyper-realistic meshes which are large and complex, this model uses
- * primitive shapes (Spheres, Capsules, Cylinders) to represent organs and systems.
- * This approach is:
- * 1. Performance friendly (low vertex count)
- * 2. Artistically consistent
- * 3. Easily extensible without 3D modeling software
- * 
- * Interactive logic (hover, selection) and system-based visibility are handled here.
- */
 function AnatomyModel({
   activeSystem,
   activeDisease,
@@ -215,15 +202,16 @@ function AnatomyModel({
 
   const isVisible = (system: SystemType) => {
     if (activeSystem === 'all') return true;
+    if (activeSystem === 'skeletal' && system === 'skeletal') return true;
     return activeSystem === system;
   };
 
   const heartRef = useRef<THREE.Mesh>(null);
   const lungsRef = useRef<THREE.Group>(null);
-  
+
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
-    
+
     if (heartRef.current) {
       if (activeDisease === 'heart_attack') {
         const scale = 1 + Math.sin(time * 18) * 0.015 * Math.random();
@@ -362,11 +350,11 @@ function AnatomyModel({
       <group visible={showShell}>
         <mesh position={[0, 4.2, 0]}>
           <capsuleGeometry args={[1.3, 3.8, 32, 32]} />
-          <meshPhysicalMaterial 
-            color="#ffffff" 
-            transparent 
-            opacity={0.05} 
-            depthWrite={false} 
+          <meshPhysicalMaterial
+            color="#ffffff"
+            transparent
+            opacity={0.05}
+            depthWrite={false}
             roughness={0}
             metalness={0.5}
           />
